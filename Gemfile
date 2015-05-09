@@ -2,4 +2,4 @@ source "https://rubygems.org"
 
 ruby '2.2.0'
 
-gem 'bosh'
+gem 'bosh_cli'
