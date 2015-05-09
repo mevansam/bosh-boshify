@@ -122,6 +122,8 @@ function initialize() {
 function bosh_init_deploy() {
 
     process_template $MANIFEST_TEMPLATE > $WORKSPACE_DIR/$MANIFEST.yml
+    nohup bosh-init deploy $WORKSPACE_DIR/$MANIFEST.yml > $WORKSPACE_DIR/bosh_init_deploy.log 2>&1 &
+    echo "Microbosh deploy running in the background. Output available at $WORKSPACE_DIR/bosh_init_deploy.log."
 }
 
 ROOT_DIR=$(cd $(dirname $0) && pwd)
