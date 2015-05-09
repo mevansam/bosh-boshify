@@ -29,7 +29,7 @@ export FLAVOR_MEDIUM=m1.medium
 export FLAVOR_LARGE=m1.large
 export FLAVOR_XLARGE=m1.xlarge
 
-# Bosh downloads - version/[sha|md5]
+# Bosh downloads - version/sha1
 export BOSH_RELEASE=163/c0bdfcd479b306c98fdf7e5cb93b882d637c0ec7
 export BOSH_OPENSTACK_CPI_RELEASE=4/f09b11aa0329a8054db9fd4b67d62992f1b8b974
 
