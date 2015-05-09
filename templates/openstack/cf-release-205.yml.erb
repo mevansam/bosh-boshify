@@ -1,0 +1,1196 @@
+<%
+director_uuid = ' a7d26d72-f7c2-461b-894c-1ac33d84f368'
+system_domain = 'cfsys-eng2.dev.nam.nsroot.net'
+app_domains = 'cfapps-eng2.dev.nam.nsroot.net'
+deployment_name = 'cf'
+cf_release = '205'
+protocol = 'http'
+compilation_network_name = 'internal'
+
+cf_instance_tiny = 'cf1.tiny'
+cf_instance_small = 'cf1.small'
+cf_instance_medium = 'cf1.medium'
+cf_instance_large = 'cf1.large'
+cf_instance_dea = 'cf1.dea'
+
+instance_type_compilation = 'cf1.large'
+
+compilation_availability_zone = 'gtdc-pod01-az1'
+max_in_flight_thread_count = '8'
+
+cf_internal_network_name = 'internal'
+cf_floating_network_name = 'floating'
+cf_internal_subnet_range = '192.168.10.0/24'
+cf_internal_gateway = '192.168.10.1'
+cf_internal_net_id = '5ab93436-20c0-47f2-ace1-a71e5bfa6ce6'
+
+recursor_ip1 = '192.193.215.65'
+recursor_ip2 = '192.193.215.69'
+recursor_ip3 = '192.193.215.73'
+
+stemcell = 'bosh-openstack-kvm-ubuntu-trusty-go_agent-raw'
+
+availability_zone_1 = "gtdc-pod01-az1"
+availability_zone_2 = "gtdc-pod02-az2"
+
+blobstore_ip = '192.168.10.21'
+
+nats_instances_z1 = '2'
+nats_instances_z2 = '2'
+
+nats_ip1_z1 = '192.168.10.22'
+nats_ip2_z1 = '192.168.10.23'
+nats_ip1_z2 = '192.168.10.24'
+nats_ip2_z2 = '192.168.10.25'
+
+etcd_instances_z1 = '1'
+
+etcd_ip_z1 = '192.168.10.26'
+
+hm9000_instances_z1 = '1'
+hm9000_instances_z2 = '1'
+
+hm9000_ip_z1 = '192.168.10.27'
+hm9000_ip_z2 = '192.168.10.28'
+
+uaa_instances_z1 = '1'
+uaa_instances_z2 = '1'
+
+uaa_ip_z1 = '192.168.10.29'
+uaa_ip_z2 = '192.168.10.30'
+
+login_instances_z1 = '1'
+login_instances_z2 = '1'
+
+login_ip1_z1 = '192.168.10.31'
+login_ip1_z2 = '192.168.10.32'
+
+haproxy_instances_z1 = '2'
+haproxy_external_static_ip1_z1 = '10.116.29.241'
+haproxy_external_static_ip2_z1 = '10.116.29.242'
+haproxy_internal_static_ip1_z1 = '192.168.10.246'
+haproxy_internal_static_ip2_z1 = '192.168.10.247'
+
+haproxy_instances_z2 = '2'
+haproxy_external_static_ip1_z2 = '10.116.29.243'
+haproxy_external_static_ip2_z2 = '10.116.29.244'
+haproxy_internal_static_ip1_z2 = '192.168.10.248'
+haproxy_internal_static_ip2_z2 = '192.168.10.249'
+
+gorouter_instances_z1 = '2'
+gorouter_instances_z2 = '2'
+
+gorouter_ip1_z1 = '192.168.10.250'
+gorouter_ip2_z1 = '192.168.10.251'
+gorouter_ip1_z2 = '192.168.10.252'
+gorouter_ip2_z2 = '192.168.10.253'
+
+api_instances_z1 = '2'
+api_instances_z2 = '2'
+
+api_ip1_z1 = '192.168.10.33'
+api_ip2_z1 = '192.168.10.34'
+api_ip1_z2 = '192.168.10.35'
+api_ip2_z2 = '192.168.10.36'
+
+clock_ip_z1 = '192.168.10.40'
+
+cc_worker_instances_z1 = '2'
+cc_worker_instances_z2 = '2'
+cc_worker_ip1_z1 = '192.168.10.41'
+cc_worker_ip2_z1 = '192.168.10.42'
+cc_worker_ip1_z2 = '192.168.10.43'
+cc_worker_ip2_z2 = '192.168.10.44'
+
+loggregator_instances_z1 = '1'
+
+loggregator_ip_z1 = '192.168.10.37'
+
+loggregator_trafficcontroller_instances_z1 = '1'
+
+loggregator_trafficcontroller_ip_z1 = '192.168.10.38'
+
+runner_instances_z1 = '2'
+runner_instances_z2 = '2'
+
+postgres_instances_z1 = '1'
+
+postgres_ip_z1 = '192.168.10.39'
+
+doppler_ip_z1 = '192.168.10.45'
+doppler_ip_z2 = '192.168.10.46'
+
+graphite_ip = '127.0.0.1'
+
+nats_password = 'c1oudc0wc1oudc0w'
+nfs_server_password = 'c1oudc0wc1oudc0w'
+ccadmin_password = 'c1oudc0wc1oudc0w'
+uaaadmin_password = 'c1oudc0wc1oudc0w'
+consoleadmin_password = 'c1oudc0wc1oudc0w'
+appusageserviceadmin_password = 'c1oudc0wc1oudc0w'
+bulk_api_password = 'c1oudc0wc1oudc0w'
+staging_upload_password = 'c1oudc0wc1oudc0w'
+db_encryption_password = 'c1oudc0wc1oudc0w'
+dea_logging_agent_admin_password = 'c1oudc0wc1oudc0w'
+loggregator_endpoint_shared_secret_password = 'c1oudc0wc1oudc0w'
+metron_endpoint_shared_secret_password = 'c1oudc0wc1oudc0w'
+gorouter_password = 'c1oudc0wc1oudc0w'
+uaa_cc_client_secret_password = 'c1oudc0wc1oudc0w'
+uaa_admin_client_secret_password = 'c1oudc0wc1oudc0w'
+uaa_batch_client_secret_password = 'c1oudc0wc1oudc0w'
+uaa_login_password = 'c1oudc0wc1oudc0w'
+uaa_portal_password = 'c1oudc0wc1oudc0w'
+uaa_cc_service_broker_client_password = 'c1oudc0wc1oudc0w'
+console_admin_password = 'c1oudc0wc1oudc0w'
+services_password = 'c1oudc0wc1oudc0w'
+etcd_password = 'c1oudc0wc1oudc0w'
+runner_password = 'c1oudc0wc1oudc0w'
+loggregator_password = 'c1oudc0wc1oudc0w'
+cloud_controller_password = 'c1oudc0wc1oudc0w'
+health_monitor_password = 'c1oudc0wc1oudc0w'
+login_password = 'c1oudc0wc1oudc0w'
+uaa_password = 'c1oudc0wc1oudc0w'
+clockglobal_password = 'c1oudc0wc1oudc0w'
+doppler_password = 'c1oudc0wc1oudc0w'
+my_common_password = 'c1oudc0wc1oudc0w'
+%>
+name: <%= deployment_name %>
+director_uuid: <%= director_uuid %>
+
+releases:
+  - name: cf
+    version: <%= cf_release %>
+
+compilation:
+  workers: 8
+  network: <%= compilation_network_name %>
+  reuse_compilation_vms: true
+  cloud_properties:
+    instance_type: <%= instance_type_compilation %>
+    availability_zone: <%= compilation_availability_zone %>
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-600000
+  update_watch_time: 30000-600000
+  max_in_flight: <%= max_in_flight_thread_count %>
+  serial: false
+
+networks:
+  - name: <%= cf_internal_network_name %>
+    type: manual
+    subnets:
+      - range: <%= cf_internal_subnet_range %>
+        gateway: <%= cf_internal_gateway %>
+        dns: 
+          - <%= recursor_ip1 %>
+          - <%= recursor_ip2 %>
+          - <%= recursor_ip3 %>
+        reserved: ['192.168.10.2 - 192.168.10.20']
+        static:
+          - 192.168.10.21 - 192.168.10.80
+          - 192.168.10.246 - 192.168.10.254
+        cloud_properties:
+          net_id: <%= cf_internal_net_id %>
+
+  - name: <%= cf_floating_network_name %>
+    type: vip
+    cloud_properties: {}
+
+resource_pools:
+  - name: tiny_z1
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_tiny %>
+      availability_zone: <%= availability_zone_1 %>
+
+  - name: tiny_z2
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_tiny %>
+      availability_zone: <%= availability_zone_2 %>
+
+  - name: small_z1
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_small %>
+      availability_zone: <%= availability_zone_1 %>
+
+  - name: small_z2
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_small %>
+      availability_zone: <%= availability_zone_2 %>
+
+  - name: medium_z1
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_medium %>
+      availability_zone: <%= availability_zone_1 %>
+
+  - name: medium_z2
+    network: <%= cf_internal_network_name %>
+    stemcell:
+     name: <%= stemcell %>
+     version: latest
+    cloud_properties:
+     instance_type: <%= cf_instance_medium %>
+     availability_zone: <%= availability_zone_2 %>
+
+  - name: large_z1
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_large %>
+      availability_zone: <%= availability_zone_1 %>
+
+  - name: large_z2
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_large %>
+      availability_zone: <%= availability_zone_2 %>
+
+  - name: dea_z1
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_dea %>
+      availability_zone: <%= availability_zone_1 %>
+
+  - name: dea_z2
+    network: <%= cf_internal_network_name %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_dea %>
+      availability_zone: <%= availability_zone_2 %>
+
+jobs:
+  - name: nfs_server
+    templates:
+      - name: debian_nfs_server
+      - name: ca_truster
+    instances: 1
+    resource_pool: small_z1
+    persistent_disk: 102400
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= blobstore_ip %>
+        default: [dns, gateway]
+
+  - name: postgres_z1
+    templates:
+      - name: postgres
+      - name: ca_truster
+    instances: <%= postgres_instances_z1 %>
+    resource_pool: large_z1
+    persistent_disk: 10240
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= postgres_ip_z1 %>
+        default: [dns, gateway]
+
+  - name: nats_z1
+    templates:
+      - name: nats
+      - name: nats_stream_forwarder
+      - name: ca_truster
+    instances: <%= nats_instances_z1 %>
+    resource_pool: medium_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= nats_ip1_z1 %>
+          - <%= nats_ip2_z1 %>
+        default: [dns, gateway]
+
+  - name: nats_z2
+    templates:
+      - name: nats
+      - name: nats_stream_forwarder
+      - name: ca_truster
+    instances: <%= nats_instances_z2 %>
+    resource_pool: medium_z2
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= nats_ip1_z2 %>
+          - <%= nats_ip2_z2 %>
+        default: [dns, gateway]
+
+  - name: etcd_z1
+    templates:
+      - name: etcd
+      - name: etcd_metrics_server
+      - name: ca_truster
+    instances: 1
+    resource_pool: small_z1
+    persistent_disk: 1024
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= etcd_ip_z1 %>
+        default: [dns, gateway]
+
+  - name: hm9000_z1
+    templates:
+      - name: hm9000
+      - name: ca_truster
+    instances: <%= hm9000_instances_z1 %>
+    resource_pool: medium_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= hm9000_ip_z1 %>
+        default: [dns, gateway]
+
+  - name: hm9000_z2
+    templates:
+      - name: hm9000
+      - name: ca_truster
+    instances: <%= hm9000_instances_z2 %>
+    resource_pool: medium_z2
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= hm9000_ip_z2 %>
+        default: [dns, gateway]
+
+  - name: uaa_z1
+    templates:
+      - name: uaa
+      - name: ca_truster
+    instances: <%= uaa_instances_z1 %>
+    resource_pool: small_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= uaa_ip_z1 %>
+        default: [dns, gateway]
+
+  - name: uaa_z2
+    templates:
+      - name: uaa
+      - name: ca_truster
+    instances: <%= uaa_instances_z2 %>
+    resource_pool: small_z2
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= uaa_ip_z2 %>
+        default: [dns, gateway]
+
+  - name: login_z1
+    templates:
+      - name: login
+      - name: ca_truster
+    instances: <%= login_instances_z1 %>
+    resource_pool: small_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= login_ip1_z1 %>
+        default: [dns, gateway]
+
+  - name: login_z2
+    templates:
+      - name: login
+      - name: ca_truster
+    instances: <%= login_instances_z2 %>
+    resource_pool: small_z2
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= login_ip1_z2 %>
+        default: [dns, gateway]
+
+  - name: ha_proxy_z1
+    templates:
+      - name: haproxy
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= haproxy_instances_z1 %>
+    resource_pool: medium_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_floating_network_name %>
+        static_ips:
+          - <%= haproxy_external_static_ip1_z1 %>
+          - <%= haproxy_external_static_ip2_z1 %>
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= haproxy_internal_static_ip1_z1 %>
+          - <%= haproxy_internal_static_ip2_z1 %>
+        default: [dns, gateway]
+    properties:
+      networks:
+        apps: <%= cf_floating_network_name %>
+
+  - name: ha_proxy_z2
+    templates:
+      - name: haproxy
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= haproxy_instances_z2 %>
+    resource_pool: medium_z2
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_floating_network_name %>
+        static_ips:
+          - <%= haproxy_external_static_ip1_z2 %>
+          - <%= haproxy_external_static_ip2_z2 %>
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= haproxy_internal_static_ip1_z2 %>
+          - <%= haproxy_internal_static_ip2_z2 %>
+        default: [dns, gateway]
+    properties:
+      networks:
+        apps: <%= cf_floating_network_name %>
+
+  - name: gorouter_z1
+    templates:
+      - name: gorouter
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= gorouter_instances_z1 %>
+    resource_pool: medium_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= gorouter_ip1_z1 %>
+          - <%= gorouter_ip2_z1 %>
+        default: [dns, gateway]
+
+  - name: gorouter_z2
+    templates:
+      - name: gorouter
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= gorouter_instances_z2 %>
+    resource_pool: medium_z2
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= gorouter_ip1_z2 %>
+          - <%= gorouter_ip2_z2 %>
+        default: [dns, gateway]
+
+  - name: api_z1
+    templates:
+      - name: cloud_controller_ng
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: <%= api_instances_z1 %>
+    resource_pool: large_z1
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= api_ip1_z1 %>
+          - <%= api_ip2_z1 %>
+        default: [dns, gateway]
+
+  - name: api_z2
+    templates:
+      - name: cloud_controller_ng
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: <%= api_instances_z2 %>
+    resource_pool: large_z2
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= api_ip1_z2 %>
+          - <%= api_ip2_z2 %>
+        default: [dns, gateway]
+
+  - name: cc_worker_z1
+    templates:
+      - name: cloud_controller_worker
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: <%= cc_worker_instances_z1 %>
+    resource_pool: medium_z1
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= cc_worker_ip1_z1 %>
+          - <%= cc_worker_ip2_z1 %>
+        default: [dns, gateway]
+
+  - name: cc_worker_z2
+    templates:
+      - name: cloud_controller_worker
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: <%= cc_worker_instances_z2 %>
+    resource_pool: medium_z2
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= cc_worker_ip1_z2 %>
+          - <%= cc_worker_ip2_z2 %>
+        default: [dns, gateway]
+
+  - name: clock_z1
+    templates:
+      - name: cloud_controller_clock
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: 1
+    resource_pool: small_z1
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= clock_ip_z1 %>
+        default: [dns, gateway]
+
+  - name: doppler_z1
+    templates:
+      - name: doppler
+      - name: ca_truster
+      - name: consul_agent
+      - name: syslog_drain_binder
+    instances: 1
+    resource_pool: small_z1
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= doppler_ip_z1 %>
+        default: [dns, gateway]
+    properties:
+      doppler:
+        zone: zone
+      traffic_controller:
+        zone: zone
+      consul:
+        agent:
+          servers:
+            lan: []
+          services:
+          - cloud_controller_ng
+
+  - name: doppler_z2
+    templates:
+      - name: doppler
+      - name: ca_truster
+      - name: consul_agent
+      - name: syslog_drain_binder
+    instances: 1
+    resource_pool: small_z2
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= doppler_ip_z2 %>
+        default: [dns, gateway]
+    properties:
+      doppler:
+        zone: zone
+      traffic_controller:
+        zone: zone
+      consul:
+        agent:
+          servers:
+            lan: []
+          services:
+          - cloud_controller_ng
+
+
+  - name: loggregator_trafficcontroller_z1
+    templates:
+      - name: loggregator_trafficcontroller
+      - name: ca_truster
+    instances: 1
+    resource_pool: medium_z1
+    networks:
+      - name: <%= cf_internal_network_name %>
+        static_ips:
+          - <%= loggregator_trafficcontroller_ip_z1 %>
+        default: [dns, gateway]
+
+  - name: runner_z1
+    templates:
+      - name: dea_next
+      - name: dea_logging_agent
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= runner_instances_z1 %>
+    resource_pool: dea_z1
+    networks:
+      - name: <%= cf_internal_network_name %>
+        default: [dns, gateway]
+
+  - name: runner_z2
+    templates:
+      - name: dea_next
+      - name: dea_logging_agent
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= runner_instances_z2 %>
+    resource_pool: dea_z2
+    networks:
+      - name: <%= cf_internal_network_name %>
+        default: [dns, gateway]
+
+  - name: collector
+    templates:
+      - name: collector
+      - name: ca_truster
+    instances: 1
+    resource_pool: small_z1
+    persistent_disk: 0
+    networks:
+      - name: <%= cf_internal_network_name %>
+        default: [dns, gateway]
+
+properties:
+  networks:
+    apps: <%= cf_internal_network_name %>
+  ca_truster:
+    certificates: []
+  domain: <%= system_domain %>
+  system_domain: <%= system_domain %>
+  system_domain_organization: system
+  app_domains:
+    - <%= app_domains %>
+
+  ssl:
+    skip_cert_verify: true
+
+  request_timeout_in_seconds: 300
+
+  doppler_endpoint:
+    shared_secret: <%= doppler_password %>
+
+  dropsonde:
+    enabled: true
+
+  ha_proxy:
+    ssl_pem: |
+      -----BEGIN CERTIFICATE-----
+      MIIBrTCCARYCCQC8Nv/VzAW5gzANBgkqhkiG9w0BAQsFADAbMQ0wCwYDVQQKDARC
+      b3NoMQowCAYDVQQDDAEqMB4XDTE0MDcyNDA0MjkzNloXDTI0MDcyMTA0MjkzNlow
+      GzENMAsGA1UECgwEQm9zaDEKMAgGA1UEAwwBKjCBnzANBgkqhkiG9w0BAQEFAAOB
+      jQAwgYkCgYEAusGqZW2nSyqSI5RY8Hm8270XfYEuR3kPVYuwwAftEi7BSaR+4fpb
+      a9kXaJwcPMIecQOsPTByoqyXfseUx1yZVBEnq/7ZjYj1ipfGa99XfQEjCzXaS3Je
+      NkdwhJf3IZf7XQMhSZMs7NmvZ6aD91st83NCr316fdDoKvRRi66YlOcCAwEAATAN
+      BgkqhkiG9w0BAQsFAAOBgQCc6HCnAY3PdykXNXLyrnRk31tuHCrwSKSGH+tf24v8
+      DO9wUuuja+jGYou5lE+lzRs8KBYR97ENb0hNC0oYrU3XWinWJAdM2Dp3/lWQJF9T
+      9yQKNnctjW6U7YbCqkbkZXesZglSjtTnyiVlD59shmDNZZCQnbG7CLkrnlQGuM4n
+      zg==
+      -----END CERTIFICATE-----
+      -----BEGIN CERTIFICATE REQUEST-----
+      MIIBWjCBxAIBADAbMQ0wCwYDVQQKDARCb3NoMQowCAYDVQQDDAEqMIGfMA0GCSqG
+      SIb3DQEBAQUAA4GNADCBiQKBgQC6waplbadLKpIjlFjwebzbvRd9gS5HeQ9Vi7DA
+      B+0SLsFJpH7h+ltr2RdonBw8wh5xA6w9MHKirJd+x5THXJlUESer/tmNiPWKl8Zr
+      31d9ASMLNdpLcl42R3CEl/chl/tdAyFJkyzs2a9npoP3Wy3zc0KvfXp90Ogq9FGL
+      rpiU5wIDAQABoAAwDQYJKoZIhvcNAQELBQADgYEAVpFm7oKKgQsuK1RUxoJ25XO2
+      aS9GpengE57N0LH1dKxyHF7g+fPer6YAwpNE7bZNjyPRkng33OJ7N67nvYtFs6eN
+      CFBf8okWpmFgJ6gC5zNxYQRm1RU7+RUpM2ceMT1g14SmA5ffS48rYaSx2raKphYA
+      KI1neJFzwM3gQfrwI+s=
+      -----END CERTIFICATE REQUEST-----
+      -----BEGIN PRIVATE KEY-----
+      MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBALrBqmVtp0sqkiOU
+      WPB5vNu9F32BLkd5D1WLsMAH7RIuwUmkfuH6W2vZF2icHDzCHnEDrD0wcqKsl37H
+      lMdcmVQRJ6v+2Y2I9YqXxmvfV30BIws12ktyXjZHcISX9yGX+10DIUmTLOzZr2em
+      g/dbLfNzQq99en3Q6Cr0UYuumJTnAgMBAAECgYEAjQFwcEiMiXpJAMgfJuIjsB1j
+      QQVqNdi3tTVVbIgPfS0ED2A91M08fX9Z50gHIfDHHzlQsJqF00FQ2Q5DzQqjUMS+
+      EJvVQsen71B8LNkKB+8GlJjTN+QoW0UAWtvK6gRYB4VIe+5LrWlioQWHucYH8UzB
+      veyzthWQBPfxDkYrvdECQQDsR0T/oo0kN3GHcwRe4p4oVMUncu9pci8IRZf7gSKN
+      8db+LVTSm7jrhUOmSmCL//A2VnoNpPriFaP573dHH9kLAkEAylg56itY8Kn9AAAk
+      1BlFprO0Odecz8Cf8ZNzzpAvnN/AqRSF04PTUCRavJonGirW6tU+qgybMMO3uVHf
+      9/W1FQJAQn/Ihp4sVS4ZkMKpTz8+viEln/W0NhxB6nUT0mBE5mhTVxRRFDlpsTe/
+      k3TJeX2eEN0D2wU86xamIPjpvCXVgwJBAJ+CQ01tFHTLnEz20BF/Rp/uQ+HhLZW8
+      pJlcgstQcKg63vaq3gBqiBdCQWEyKCcBpGCE8Bw/Sct8TgXCHEutHy0CQQCv14lC
+      nM7h6y+I9r3cqZRBDMfWpvAl25doctNWY0McmudIT9FHIBtvayRnBqa9Z554Bk6S
+      f+4pffb9Gl/e6Fxh
+      -----END PRIVATE KEY-----
+
+  nats:
+    user: nats
+    password: <%= nats_password %>
+    address: <%= nats_ip1_z1 %>
+    port: 4222
+    machines:
+      - <%= nats_ip1_z1 %>
+
+  etcd:
+    machines:
+      - <%= etcd_ip_z1 %>
+
+  etcd_metrics_server:
+    nats:
+      machines:
+        - <%= nats_ip1_z1 %>
+      username: nats
+      password: <%= nats_password %>
+
+  syslog_aggregator: {}
+
+  nfs_server:
+    address: <%= blobstore_ip %>
+    no_root_squash: true
+    allow_from_entries:
+      - <%= cf_internal_subnet_range %>
+    idmapd_domain: openstacklocal
+
+  databases: &databases
+    db_scheme: postgres
+    address: <%= postgres_ip_z1 %>
+    port: 5524
+    roles:
+      - tag: admin
+        name: ccadmin
+        password: <%= ccadmin_password %>
+      - tag: admin
+        name: uaaadmin
+        password: <%= uaaadmin_password %>
+      - tag: admin
+        name: consoleadmin
+        password: <%= consoleadmin_password %>
+      - tag: admin
+        name: appusageserviceadmin
+        password: <%= appusageserviceadmin_password %>
+    databases:
+      - tag: cc
+        name: ccdb
+        citext: true
+      - tag: uaa
+        name: uaadb
+        citext: true
+      - tag: console
+        name: consoledb
+        citext: true
+
+  ccdb: &ccdb
+    db_scheme: postgres
+    address: <%= postgres_ip_z1 %>
+    port: 5524
+    roles:
+      - tag: admin
+        name: ccadmin
+        password: <%= ccadmin_password %>
+    databases:
+      - tag: cc
+        name: ccdb
+        citext: true
+
+  collector:
+      my_deployment_name: <%= deployment_name %>
+      use_graphite: false
+      graphite:
+        address: <%= graphite_ip %>
+        port: 2003
+
+  uaadb:
+    db_scheme: postgresql
+    address: <%= postgres_ip_z1 %>
+    port: 5524
+    roles:
+      - tag: admin
+        name: uaaadmin
+        password: <%= uaaadmin_password %>
+    databases:
+      - tag: uaa
+        name: uaadb
+        citext: true
+
+  consoledb:
+    db_scheme: postgres
+    address: <%= postgres_ip_z1 %>
+    port: 5524
+    roles:
+      - tag: admin
+        name: consoleadmin
+        password: <%= consoleadmin_password %>
+    databases:
+      - tag: console
+        name: consoledb
+        citext: true
+
+  cc: &cc
+    external_host: api
+    srv_api_uri: <%= protocol %>://api.<%= system_domain %>
+    jobs:
+      global:
+        timeout_in_seconds: 14400
+      app_bits_packer:
+        timeout_in_seconds: null
+      app_events_cleanup:
+        timeout_in_seconds: null
+      app_usage_events_cleanup:
+        timeout_in_seconds: null
+      blobstore_delete:
+        timeout_in_seconds: null
+      blobstore_upload:
+        timeout_in_seconds: null
+      droplet_deletion:
+        timeout_in_seconds: null
+      droplet_upload:
+        timeout_in_seconds: null
+      model_deletion:
+        timeout_in_seconds: null
+      generic:
+        number_of_workers: null
+    app_events:
+      cutoff_age_in_days: 31
+    app_usage_events:
+      cutoff_age_in_days: 31
+    audit_events:
+      cutoff_age_in_days: 31
+    billing_event_writing_enabled: true
+    diego: false
+    diego_docker: false
+    internal_app_memory: 1024
+    internal_app_disk_in_mb: 1024
+    maximum_app_disk_in_mb: 2048
+    client_max_body_size: 1536M
+    bulk_api_password: <%= bulk_api_password %>
+    internal_api_user: apiuser
+    internal_api_password: <%= bulk_api_password %>
+    staging_upload_user: upload
+    staging_upload_password: <%= staging_upload_password %>
+    db_encryption_key: <%= db_encryption_password %>
+    disable_custom_buildpacks: false
+    broker_client_timeout_seconds: 120
+    broker_client_default_async_poll_interval_seconds: 60
+    development_mode: false
+    resource_pool:
+     resource_directory_key: cloudfoundry-resources
+     fog_connection:
+       provider: Local
+       local_root: /var/vcap/nfs/shared
+    packages:
+     app_package_directory_key: cloudfoundry-packages
+     fog_connection:
+       provider: Local
+       local_root: /var/vcap/nfs/shared
+    droplets:
+     droplet_directory_key: cloudfoundry-droplets
+     fog_connection:
+       provider: Local
+       local_root: /var/vcap/nfs/shared
+    buildpacks:
+     buildpack_directory_key: cloudfoundry-buildpacks
+     fog_connection:
+       provider: Local
+       local_root: /var/vcap/nfs/shared
+    install_buildpacks:
+      - name: java_buildpack_offline
+        package: buildpack_java_offline
+      - name: ruby_buildpack
+        package: buildpack_ruby
+      - name: nodejs_buildpack
+        package: buildpack_nodejs
+      - name: go_buildpack
+        package: buildpack_go
+      - name: python_buildpack
+        package: buildpack_python
+      - name: php_buildpack
+        package: buildpack_php
+    newrelic:
+      capture_params: false
+      developer_mode: false
+      environment_name: <%= deployment_name %>
+      license_key: null
+      monitor_mode: false
+      transaction_tracer:
+        enabled: true
+        record_sql: obfuscated
+    quota_definitions:
+      default:
+        memory_limit: 10240
+        total_services: 100
+        non_basic_services_allowed: true
+        total_routes: 1000
+        trial_db_allowed: true
+      runaway:
+        memory_limit: 102400
+        total_services: -1
+        total_routes: 1000
+        non_basic_services_allowed: true
+    security_group_definitions:
+      - name: public_networks
+        rules:
+          - protocol: all
+            destination: 0.0.0.0-9.255.255.255
+          - protocol: all
+            destination: 11.0.0.0-169.253.255.255
+          - protocol: all
+            destination: 169.255.0.0-172.15.255.255
+          - protocol: all
+            destination: 172.32.0.0-192.167.255.255
+          - protocol: all
+            destination: 192.169.0.0-255.255.255.255
+      - name: internal_network
+        rules:
+          - protocol: all
+            destination: 10.0.0.0-10.255.255.255
+          - protocol: all
+            destination: 192.168.10.0-192.255.255.255
+      - name: dns
+        rules:
+          - destination: 0.0.0.0/0
+            ports: '53'
+            protocol: tcp
+          - destination: 0.0.0.0/0
+            ports: '53'
+            protocol: udp
+    default_running_security_groups:
+      - public_networks
+      - internal_network
+      - dns
+    default_staging_security_groups:
+      - public_networks
+      - internal_network
+      - dns
+    maximum_health_check_timeout: 600
+
+  dea: &dea
+    disk_mb: 102400
+    disk_overcommit_factor: 2
+    memory_mb: 15000
+    memory_overcommit_factor: 3
+    staging_disk_inode_limit: 200000
+    instance_disk_inode_limit: 200000
+    kernel_network_tuning_enabled: true
+    directory_server_protocol: <%= protocol %>
+    evacuation_bail_out_time_in_seconds: 600
+    logging_level: debug
+    staging_disk_limit_mb: 4096
+    staging_memory_limit_mb: 1024
+    mtu: 1460
+    deny_networks:
+      - 169.254.0.0/16
+    advertise_interval_in_seconds: 5
+    default_health_check_timeout: 60
+    heartbeat_interval_in_seconds: 10
+  dea_next: *dea
+  disk_quota_enabled: true
+
+  dea_logging_agent:
+    status:
+      user: admin
+      password: <%= dea_logging_agent_admin_password %>
+
+  loggregator_endpoint:
+    shared_secret: <%= loggregator_endpoint_shared_secret_password %>
+
+  loggregator:
+    doppler_port: 8083
+
+  traffic_controller:
+    zone: 'zone'
+    incoming_port: 3457
+    outgoing_port: 8082
+
+  logger_endpoint:
+    use_ssl: <%= protocol == 'https' %>
+    port: 80
+
+  doppler:
+    outgoing_port: 8083
+
+  metron_endpoint:
+    shared_secret: <%= metron_endpoint_shared_secret_password %>
+
+  metron_agent:
+    zone: 'zone'
+
+  login:
+    enabled: true
+    protocol: <%= protocol %>
+    port: 8081
+    catalina_opts: -Xmx768m -XX:MaxPermSize=256m
+    brand: oss
+    links:
+      home: <%= protocol %>://console.<%= system_domain %>
+      passwd: <%= protocol %>://console.<%= system_domain %>/password_resets/new
+      signup: <%= protocol %>://console.<%= system_domain %>/register
+
+  router:
+    endpoint_timeout: 60
+    status:
+      port: 8080
+      user: gorouter
+      password: <%= gorouter_password %>
+    servers:
+      z1:
+        - <%= gorouter_ip1_z1 %>
+        - <%= gorouter_ip2_z1 %>
+      z2:
+        - <%= gorouter_ip1_z2 %>
+        - <%= gorouter_ip2_z2 %>
+
+  uaa:
+    url: <%= protocol %>://uaa.<%= system_domain %>
+    no_ssl: <%= protocol == 'http' %>
+    catalina_opts: -Xmx768m -XX:MaxPermSize=256m
+    cc:
+      client_secret: <%= uaa_cc_client_secret_password %>
+    admin:
+      client_secret: <%= uaa_admin_client_secret_password %>
+    batch:
+      username: batch
+      password: <%= uaa_batch_client_secret_password %>
+    clients:
+      cf:
+        override: true
+        authorized-grant-types: implicit,password,refresh_token
+        authorities: uaa.none
+        scope: cloud_controller.read,cloud_controller.write,openid,password.write,cloud_controller.admin,scim.read,scim.write,doppler.firehose
+        access-token-validity: 7200
+        refresh-token-validity: 1209600
+      admin:
+        secret: <%= my_common_password %>
+        authorized-grant-types: client_credentials
+        authorities: clients.read,clients.write,clients.secret,password.write,scim.write,scim.read,uaa.admin
+      login:
+        id: login
+        override: true
+        autoapprove: true
+        scope: openid,oauth.approvals
+        authorities: oauth.login,scim.write,clients.read,notifications.write,critical_notifications.write,emails.write,scim.userids,password.write
+        secret: <%= uaa_login_password %>
+        authorized-grant-types: authorization_code,client_credentials,refresh_token
+        redirect-uri: <%= protocol %>://login.<%= system_domain %>
+      portal:
+        override: true
+        scope: openid,cloud_controller.read,cloud_controller.write,password.write,console.admin,console.support,cloud_controller.admin
+        authorities: scim.write,scim.read,cloud_controller.read,cloud_controller.write,password.write,uaa.admin,uaa.resource,cloud_controller.admin,emails.write,notifications.write
+        secret: <%= uaa_portal_password %>
+        authorized-grant-types: authorization_code,client_credentials,password,implicit
+        access-token-validity: 1209600
+        refresh-token-validity: 1209600
+        redirect-uri: <%= protocol %>://console.<%= system_domain %>/oauth/callback
+      autoscaling_service:
+        id: autoscaling_service
+        secret: <%= my_common_password %>
+        override: true
+        autoapprove: true
+        authorities: cloud_controller.write,cloud_controller.read,cloud_controller.admin,notifications.write,critical_notifications.write,emails.write
+        authorized-grant-types: client_credentials,authorization_code,refresh_token
+        scope: openid,cloud_controller.permissions,cloud_controller.read,cloud_controller.write
+        access-token-validity: 3600
+      system_passwords:
+        id: system_passwords
+        secret: <%= my_common_password %>
+        override: true
+        autoapprove: true
+        authorities: uaa.admin,scim.read,scim.write,password.write
+        authorized-grant-types: client_credentials
+      cc_service_broker_client:
+        id: cc_service_broker_client
+        override: true
+        autoapprove: true
+        secret: <%= uaa_cc_service_broker_client_password %>
+        authorized-grant-types: client_credentials
+        scope: cloud_controller.write,openid,cloud_controller.read,cloud_controller_service_permissions.read
+        authorities: clients.read,clients.write,clients.admin
+        access-token-validity: 1209600
+        refresh-token-validity: 1209600
+      app-direct:
+        secret: <%= my_common_password %>
+      cloud_controller_username_lookup:
+        authorities: scim.userids
+        authorized-grant-types: client_credentials
+        secret: <%= my_common_password %>
+      developer_console:
+        secret: <%= my_common_password %>
+      doppler:
+        authorities: uaa.resource
+        override: true
+        secret: <%= my_common_password %>
+      notifications:
+        authorities: cloud_controller.admin,scim.read
+        authorized-grant-types: <%= my_common_password %>
+        secret: notification_secret
+      notifications_template:
+        id: notifications_template
+        secret: <%= my_common_password %>
+        scope: clients.read,clients.write,clients.secret
+        authorities: clients.read,clients.write,clients.secret,notification_templates.write,notification_templates.read,notifications.manage
+        authorized-grant-types: client_credentials
+      notifications_ui_client:
+        id: notifications_ui_client
+        secret: <%= my_common_password %>
+        scope: notification_preferences.read,notification_preferences.write,openid
+        authorized-grant-types: authorization_code,client_credentials,refresh_token
+        authorities: notification_preferences.admin
+        autoapprove: true
+        override: true
+        redirect-uri: <%= protocol %>://notifications-ui.<%= system_domain %>/sessions/create
+    scim:
+      user:
+        override: false
+      users:
+        - admin|<%= console_admin_password %>|scim.write,scim.read,openid,cloud_controller.admin,dashboard.user,console.admin,console.support,doppler.firehose,notification_preferences.read,notification_preferences.write,notifications.manage,notification_templates.read,notification_templates.write,emails.write,notifications.write
+        - push_console|<%= services_password %>|cloud_controller.admin
+        - smoke_tests|<%= services_password %>|cloud_controller.admin
+        - system_services|<%= services_password %>|cloud_controller.admin
+        - system_verification|<%= services_password %>|scim.write,scim.read,openid,cloud_controller.admin,dashboard.user,console.admin,console.support
+
+    jwt:
+      signing_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIICXAIBAAKBgQDHFr+KICms+tuT1OXJwhCUmR2dKVy7psa8xzElSyzqx7oJyfJ1
+        JZyOzToj9T5SfTIq396agbHJWVfYphNahvZ/7uMXqHxf+ZH9BL1gk9Y6kCnbM5R6
+        0gfwjyW1/dQPjOzn9N394zd2FJoFHwdq9Qs0wBugspULZVNRxq7veq/fzwIDAQAB
+        AoGBAJ8dRTQFhIllbHx4GLbpTQsWXJ6w4hZvskJKCLM/o8R4n+0W45pQ1xEiYKdA
+        Z/DRcnjltylRImBD8XuLL8iYOQSZXNMb1h3g5/UGbUXLmCgQLOUUlnYt34QOQm+0
+        KvUqfMSFBbKMsYBAoQmNdTHBaz3dZa8ON9hh/f5TT8u0OWNRAkEA5opzsIXv+52J
+        duc1VGyX3SwlxiE2dStW8wZqGiuLH142n6MKnkLU4ctNLiclw6BZePXFZYIK+AkE
+        xQ+k16je5QJBAN0TIKMPWIbbHVr5rkdUqOyezlFFWYOwnMmw/BKa1d3zp54VP/P8
+        +5aQ2d4sMoKEOfdWH7UqMe3FszfYFvSu5KMCQFMYeFaaEEP7Jn8rGzfQ5HQd44ek
+        lQJqmq6CE2BXbY/i34FuvPcKU70HEEygY6Y9d8J3o6zQ0K9SYNu+pcXt4lkCQA3h
+        jJQQe5uEGJTExqed7jllQ0khFJzLMx0K6tj0NeeIzAaGCQz13oo2sCdeGRHO4aDh
+        HH6Qlq/6UOV5wP8+GAcCQFgRCcB+hrje8hfEEefHcFpyKH+5g1Eu1k0mLrxK2zd+
+        4SlotYRHgPCEubokb2S1zfZDWIXW3HmggnGgM949TlY=
+        -----END RSA PRIVATE KEY-----
+      verification_key: |
+        -----BEGIN PUBLIC KEY-----
+        MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDHFr+KICms+tuT1OXJwhCUmR2d
+        KVy7psa8xzElSyzqx7oJyfJ1JZyOzToj9T5SfTIq396agbHJWVfYphNahvZ/7uMX
+        qHxf+ZH9BL1gk9Y6kCnbM5R60gfwjyW1/dQPjOzn9N394zd2FJoFHwdq9Qs0wBug
+        spULZVNRxq7veq/fzwIDAQAB
+        -----END PUBLIC KEY-----

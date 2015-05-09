@@ -1,0 +1,237 @@
+<%
+  instance_name = "os.pcf-services.com-microbosh"
+
+  resurrector_enabled = 'true'
+  ssl_verify_peer = 'false'
+  ignore_server_availability_zone = 'true'
+  max_threads = 8
+  state_timeout = 600
+
+  #
+  # Do not change any code below as it sources values from the environment
+  #
+
+  def inc_ipaddr(current_ip, last_ip, allocated_ip)
+    require 'ipaddr'
+    begin
+      raise "No more IPs" if last_ip==current_ip
+      current_ip = IPAddr.new(current_ip).succ.to_s
+    end while allocated_ip.include?(current_ip)
+    current_ip
+  end
+
+  infra_net = `neutron --insecure net-list 2> /dev/null | grep "#{ENV['INFRA_NETWORK']}"`.split(/[ \|]/).select { |v| !v.strip.empty? }
+  raise "Error retrieving infrastructure network uuid." unless $?.success?
+
+  micro_bosh_vip = `nova --insecure floating-ip-list 2> /dev/null | awk -v net="#{ENV['PUBLIC_NETWORK']}" '$8==net && $4=="-" { print $2 }' | head -n 1`.chomp
+  raise "Error reading available public IPs." unless $?.success?
+  if micro_bosh_vip.empty?
+    micro_bosh_vip = `nova --insecure floating-ip-create $publicnet 2> /dev/null | awk -v net="#{ENV['PUBLIC_NETWORK']}" '$8==net { print $2 }'`.chomp
+    raise "Error creating public IP." unless $?.success?
+  end
+  raise "Unable to retrieve a public IP for microbosh instance." if micro_bosh_vip.empty?
+
+  net_uuid = infra_net[0]
+  subnet_uuid = infra_net[2]
+  subnet_cidr = infra_net[3]
+
+  subnet_detail = `neutron --insecure subnet-show #{subnet_uuid} 2> /dev/null`.lines
+  raise "Error retrieving subnet details" unless $?.success?
+
+  gateway_ip = subnet_detail.select { |l| l[/gateway_ip/,0] }.first[/(\d+\.\d+\.\d+\.\d+)/, 1]
+
+  allocation_pool = subnet_detail.select { |l| l[/allocation_pools/,0] }.first
+  current_ip = allocation_pool[/\"start\": \"(\d+\.\d+\.\d+\.\d+)\"/, 1]
+  last_ip = allocation_pool[/\"end\": \"(\d+\.\d+\.\d+\.\d+)\"/, 1]
+  allocated = `neutron --insecure port-list 2> /dev/null | grep "#{subnet_uuid}"`.lines.each.map { |l| l[/\d+\.\d+\.\d+\.\d+/, 0] }
+
+  current_ip = inc_ipaddr(current_ip, last_ip, allocated)
+  micro_bosh_ip = current_ip
+
+  proxy_host_name = ENV['HTTP_PROXY']
+  flavor = ENV['FLAVOR_LARGE']
+  availability_zone = ENV['AVAILABILITY_ZONE']
+
+  dns_ips = ENV['DNS_SERVERS']
+  ntp_ips = ENV['NTP_SERVERS']
+  tsdb_ip = ENV['TSDB_SERVERS']
+
+  bosh_release = ENV['BOSH_RELEASE'].split('/')
+  bosh_openstack_cpi_release = ENV['BOSH_OPENSTACK_CPI_RELEASE'].split('/')
+-%>
+---
+name: bosh
+
+releases:
+- name: bosh
+  url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=<%= bosh_release[0] %>
+  sha1: <%= bosh_release[1] %>
+- name: bosh-openstack-cpi
+  url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=<%= bosh_openstack_cpi_release[0] %>
+  sha1: <%= bosh_openstack_cpi_release[1] %>
+
+resource_pools:
+- name: vms
+  network: private
+  stemcell:
+    url: <%= ENV['BOSH_STEMCELL_URL'] %>
+    sha1: <%= ENV['BOSH_STEMCELL_SHA1'] %>
+  cloud_properties:
+    instance_type: <%= flavor %>
+<% unless availability_zone.nil? -%>
+    availability_zone: <%= availability_zone %>
+<% end -%>
+
+disk_pools:
+- name: disks
+  disk_size: 20_000
+
+networks:
+- name: private
+  type: manual
+  subnets:
+  - range: <%= subnet_cidr %>
+    gateway: <%= gateway_ip %>
+<% unless dns_ips.nil? -%>
+    dns:
+<% dns_ips.split(',').each do |dns_ip| -%>
+    - <%= dns_ip %>
+<% end -%>
+<% end -%>
+    cloud_properties: 
+      net_id: <%= net_uuid %>
+- name: public
+  type: vip
+
+jobs:
+- name: bosh
+  instances: 1
+
+  templates:
+  - name: nats
+    release: bosh
+  - name: redis
+    release: bosh
+  - name: postgres
+    release: bosh
+  - name: blobstore
+    release: bosh
+  - name: director
+    release: bosh
+  - name: health_monitor
+    release: bosh
+  - name: registry
+    release: bosh
+  - name: cpi
+    release: bosh-openstack-cpi
+
+  resource_pool: vms
+  persistent_disk_pool: disks
+
+  networks:
+  - name: private
+    static_ips: 
+    - <%= micro_bosh_ip %>
+  - name: public
+    static_ips: 
+    - <%= micro_bosh_vip %>
+
+  properties:
+    nats:
+      address: 127.0.0.1
+      user: nats
+      password: nats-password
+
+    redis:
+      listen_addresss: 127.0.0.1
+      address: 127.0.0.1
+      password: redis-password
+
+    postgres: &db
+      host: 127.0.0.1
+      user: postgres
+      password: postgres-password
+      database: bosh
+      adapter: postgres
+
+    registry:
+      address: <%= micro_bosh_ip %>
+      host: <%= micro_bosh_ip %>
+      db: *db
+      http: 
+        user: admin
+        password: admin
+        port: 25777
+      username: admin
+      password: admin
+      port: 25777
+
+    blobstore:
+      address: <%= micro_bosh_ip %>
+      port: 25250
+      provider: dav
+      director: 
+        user: director
+        password: director-password
+      agent: 
+        user: agent
+        password: agent-password
+
+    director:
+      address: 127.0.0.1
+      name: my-bosh
+      db: *db
+      cpi_job: cpi
+      max_threads: 3
+
+    hm:
+      http: 
+        user: hm
+        password: hm-password
+      director_account: 
+        user: admin
+        password: admin
+      resurrector_enabled: true
+
+    openstack: &openstack
+      auth_url: <%= ENV['OS_AUTH_URL'] %>/tokens
+      tenant: <%= ENV['OS_TENANT_NAME'] %>
+      username: <%= ENV['OS_USERNAME'] %>
+      api_key: <%= ENV['OS_PASSWORD'] %>
+      default_key_name: <%= ENV['KEYPAIR_NAME'] %>
+      default_security_groups: 
+      - <%= ENV['BOSH_SECURITY_GROUP'] %>
+      connection_options:
+        ssl_verify_peer: <%= ssl_verify_peer %>
+
+    agent: 
+      mbus: "nats://nats:nats-password@<%= micro_bosh_ip %>:4222"
+
+<% unless ntp_ips.nil? -%>
+    ntp: &ntp
+<% ntp_ips.split(',').each do |ntp_ip| -%>
+    - <%= ntp_ip %>
+<% end -%>
+<% end -%>
+
+cloud_provider:
+  template: 
+    name: cpi
+    release: bosh-openstack-cpi
+
+  ssh_tunnel:
+    host: <%= micro_bosh_vip %>
+    port: 22
+    user: vcap
+    private_key: <%= ENV['KEYPAIR_PRIVATE_KEY'] %>
+
+  mbus: "https://mbus:mbus-password@<%= micro_bosh_vip %>:6868"
+
+  properties:
+    openstack: *openstack
+    agent: 
+      mbus: "https://mbus:mbus-password@0.0.0.0:6868"
+    blobstore: 
+      provider: local
+      path: /var/vcap/micro_bosh/data/cache
+    ntp: *ntp
