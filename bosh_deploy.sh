@@ -54,7 +54,7 @@ function initialize() {
         exit 1
     fi
     if [ "$iaas" == "openstack" ]; then
-        pip freeze | grep python-novaclient 2>&1 > /dev/null
+        pip freeze 2> /dev/null | grep python-novaclient 2>&1 > /dev/null
         if [ $? -ne 0 ]; then
             echo "ERROR! Unable to find python or openstack clients."
             exit 1
