@@ -122,6 +122,11 @@ function initialize() {
 function bosh_init_deploy() {
 
     process_template $MANIFEST_TEMPLATE > $WORKSPACE_DIR/$MANIFEST.yml
+    if [ $? -ne 0 ]; then
+        "ERROR encountered while processing the manifest template at '$MANIFEST_TEMPLATE'."
+        exit 1
+    fi
+
     nohup bosh-init deploy $WORKSPACE_DIR/$MANIFEST.yml > $WORKSPACE_DIR/bosh_init_deploy.log 2>&1 &
     echo "Microbosh deploy running in the background. Output available at $WORKSPACE_DIR/bosh_init_deploy.log."
 }

@@ -23,10 +23,10 @@
   infra_net = `neutron --insecure net-list 2> /dev/null | grep "#{ENV['INFRA_NETWORK']}"`.split(/[ \|]/).select { |v| !v.strip.empty? }
   raise "Error retrieving infrastructure network uuid." unless $?.success?
 
-  micro_bosh_vip = `nova --insecure floating-ip-list 2> /dev/null | awk -v net="#{ENV['PUBLIC_NETWORK']}" '$8==net && $4=="-" { print $2 }' | head -n 1`.chomp
+  micro_bosh_vip = `nova --insecure floating-ip-list 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{ENV['PUBLIC_NETWORK']}/, 0] }.first[/\d+\.\d+\.\d+\.\d+/, 0]
   raise "Error reading available public IPs." unless $?.success?
   if micro_bosh_vip.empty?
-    micro_bosh_vip = `nova --insecure floating-ip-create $publicnet 2> /dev/null | awk -v net="#{ENV['PUBLIC_NETWORK']}" '$8==net { print $2 }'`.chomp
+    micro_bosh_vip = `nova --insecure floating-ip-create #{ENV['PUBLIC_NETWORK']} 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{ENV['PUBLIC_NETWORK']}/, 0] }.first[/\d+\.\d+\.\d+\.\d+/, 0]
     raise "Error creating public IP." unless $?.success?
   end
   raise "Unable to retrieve a public IP for microbosh instance." if micro_bosh_vip.empty?
