@@ -24,6 +24,23 @@ cat << EOF
 EOF
 }
 
+function parse_yaml {
+   local prefix=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
 function process_template() {
 
 ruby - $1 <<END
@@ -98,6 +115,7 @@ function initialize() {
     fi
 
     source $BOSHRC_ENV
+    export ENV_NAME=$env
 
     STEMCELL_DIR=$ROOT_DIR/.stemcells
     mkdir -p $STEMCELL_DIR
@@ -128,10 +146,34 @@ function bosh_init_deploy() {
     fi
 
     nohup bosh-init deploy $WORKSPACE_DIR/$MANIFEST.yml > $WORKSPACE_DIR/bosh_init_deploy.log 2>&1 &
-    echo "Microbosh deploy running in the background. Output available at $WORKSPACE_DIR/bosh_init_deploy.log."
+    echo "Microbosh deploy running in the background. Output available at $WORKSPACE_DIR/bosh-init-deploy.log."
 }
 
-ROOT_DIR=$(cd $(dirname $0) && pwd)
+function set_bosh_target() {
+
+    if [ ! -e "$WORKSPACE_DIR/bosh-init-state.json" ]; then
+        echo "ERROR! Unable to local bosh-int state in workspace '$WORKSPACE_DIR'."
+        exit 1
+    fi
+
+    export DIRECTOR_UID=$(cat $WORKSPACE_DIR/bosh-init-state.json | awk '/director_id/ { print substr($2,2,length($2)-3) }')
+
+    local director_vmuuid=$(cat $WORKSPACE_DIR/bosh-init-state.json | awk '/current_vm_cid/ { print substr($2,2,length($2)-3) }')
+    local director_ip=$(nova --insecure show  $director_vmuuid 2> /dev/null | awk -v net="$INFRA_NETWORK" '$2==net && $3=="network" { print $6 }')
+
+    bosh -u $BOSH_USER -p $BOSH_PASSWORD target $director_ip
+}
+
+function bosh_deploy_release() {
+
+    process_template $MANIFEST_TEMPLATE > $WORKSPACE_DIR/$MANIFEST.yml
+    if [ $? -ne 0 ]; then
+        "ERROR encountered while processing the manifest template at '$MANIFEST_TEMPLATE'."
+        exit 1
+    fi
+}
+
+export ROOT_DIR=$(cd $(dirname $0) && pwd)
 
 case "$1" in
     help)
@@ -143,6 +185,8 @@ case "$1" in
         ;;
     release)
         initialize $2 $3 $4
+        set_bosh_target
+        bosh_deploy_release
         ;;
     *)
         usage

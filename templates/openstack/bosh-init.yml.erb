@@ -1,6 +1,4 @@
 <%
-  instance_name = "os.pcf-services.com-microbosh"
-
   resurrector_enabled = 'true'
   ssl_verify_peer = 'false'
   ignore_server_availability_zone = 'true'
@@ -11,17 +9,35 @@
   # Do not change any code below as it sources values from the environment
   #
 
-  def inc_ipaddr(current_ip, last_ip, allocated_ip)
-    require 'ipaddr'
-    begin
-      raise "No more IPs" if last_ip==current_ip
-      current_ip = IPAddr.new(current_ip).succ.to_s
-    end while allocated_ip.include?(current_ip)
-    current_ip
-  end
+  $:.unshift ENV['ROOT_DIR']
+  require 'lib/subnet'
+
+  proxy_host_name = ENV['HTTP_PROXY']
+  flavor = ENV['FLAVOR_LARGE']
+
+  availability_zone = ENV['AVAILABILITY_ZONE'] ? ENV['AVAILABILITY_ZONE'].split(',').first : nil
+
+  http_proxy = ENV['HTTP_PROXY']
+  dns_ips = ENV['DNS_SERVERS']
+  ntp_ips = ENV['NTP_SERVERS']
+  tsdb_ip = ENV['TSDB_SERVERS']
+
+  bosh_release = ENV['BOSH_RELEASE'].split('/')
+  bosh_openstack_cpi_release = ENV['BOSH_OPENSTACK_CPI_RELEASE'].split('/')
+
+  # Retrieve network information
 
   infra_net = `neutron --insecure net-list 2> /dev/null | grep "#{ENV['INFRA_NETWORK']}"`.split(/[ \|]/).select { |v| !v.strip.empty? }
   raise "Error retrieving infrastructure network uuid." unless $?.success?
+
+  net_uuid = infra_net[0]
+  subnet_uuid = infra_net[2]
+  subnet_cidr = infra_net[3]
+
+  subnet=Subnet.new(subnet_uuid)
+  micro_bosh_ip = subnet.get_static_ip(subnet.allocate_block(1))
+
+  # Retrieve floating/public IP for the director
 
   micro_bosh_vip = `nova --insecure floating-ip-list 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{ENV['PUBLIC_NETWORK']}/, 0] }.first[/\d+\.\d+\.\d+\.\d+/, 0]
   raise "Error reading available public IPs." unless $?.success?
@@ -30,34 +46,6 @@
     raise "Error creating public IP." unless $?.success?
   end
   raise "Unable to retrieve a public IP for microbosh instance." if micro_bosh_vip.empty?
-
-  net_uuid = infra_net[0]
-  subnet_uuid = infra_net[2]
-  subnet_cidr = infra_net[3]
-
-  subnet_detail = `neutron --insecure subnet-show #{subnet_uuid} 2> /dev/null`.lines
-  raise "Error retrieving subnet details" unless $?.success?
-
-  gateway_ip = subnet_detail.select { |l| l[/gateway_ip/,0] }.first[/(\d+\.\d+\.\d+\.\d+)/, 1]
-
-  allocation_pool = subnet_detail.select { |l| l[/allocation_pools/,0] }.first
-  current_ip = allocation_pool[/\"start\": \"(\d+\.\d+\.\d+\.\d+)\"/, 1]
-  last_ip = allocation_pool[/\"end\": \"(\d+\.\d+\.\d+\.\d+)\"/, 1]
-  allocated = `neutron --insecure port-list 2> /dev/null | grep "#{subnet_uuid}"`.lines.each.map { |l| l[/\d+\.\d+\.\d+\.\d+/, 0] }
-
-  current_ip = inc_ipaddr(current_ip, last_ip, allocated)
-  micro_bosh_ip = current_ip
-
-  proxy_host_name = ENV['HTTP_PROXY']
-  flavor = ENV['FLAVOR_LARGE']
-  availability_zone = ENV['AVAILABILITY_ZONE']
-
-  dns_ips = ENV['DNS_SERVERS']
-  ntp_ips = ENV['NTP_SERVERS']
-  tsdb_ip = ENV['TSDB_SERVERS']
-
-  bosh_release = ENV['BOSH_RELEASE'].split('/')
-  bosh_openstack_cpi_release = ENV['BOSH_OPENSTACK_CPI_RELEASE'].split('/')
 -%>
 ---
 name: bosh
@@ -91,7 +79,7 @@ networks:
   type: manual
   subnets:
   - range: <%= subnet_cidr %>
-    gateway: <%= gateway_ip %>
+    gateway: <%= subnet.gateway_ip %>
 <% unless dns_ips.nil? -%>
     dns:
 <% dns_ips.split(',').each do |dns_ip| -%>
@@ -179,10 +167,10 @@ jobs:
 
     director:
       address: 127.0.0.1
-      name: my-bosh
+      name: <%= ENV['ENV_NAME']+'-microbosh' %>
       db: *db
       cpi_job: cpi
-      max_threads: 3
+      max_threads: <%= max_threads %>
 
     hm:
       http: 
@@ -191,7 +179,7 @@ jobs:
       director_account: 
         user: admin
         password: admin
-      resurrector_enabled: true
+      resurrector_enabled: <%= resurrector_enabled %>
 
     openstack: &openstack
       auth_url: <%= ENV['OS_AUTH_URL'] %>/tokens
@@ -201,11 +189,19 @@ jobs:
       default_key_name: <%= ENV['KEYPAIR_NAME'] %>
       default_security_groups: 
       - <%= ENV['BOSH_SECURITY_GROUP'] %>
+      state_timeout: <%= state_timeout %>
+      ignore_server_availability_zone: <%= ignore_server_availability_zone %>
       connection_options:
         ssl_verify_peer: <%= ssl_verify_peer %>
 
     agent: 
       mbus: "nats://nats:nats-password@<%= micro_bosh_ip %>:4222"
+
+<% unless http_proxy.nil? -%>
+    env:
+      http_proxy: <%= http_proxy %>
+      https_proxy: <%= http_proxy %>
+<% end -%>
 
 <% unless ntp_ips.nil? -%>
     ntp: &ntp
