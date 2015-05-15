@@ -852,7 +852,7 @@ jobs:
       - name: metron_agent
       - name: ca_truster
     instances: <%= haproxy_instances %>
-    resource_pool: medium_<%= app_net_name %>_<%= z %>
+    resource_pool: medium_<%= app_net_name %>_z<%= z %>
     persistent_disk: 0
     networks:
       - name: <%= public_net_name %>
@@ -876,7 +876,7 @@ jobs:
       - name: metron_agent
       - name: ca_truster
     instances: <%= gorouter_instances %>
-    resource_pool: medium_<%= app_net_name %>_<%= z %>
+    resource_pool: medium_<%= app_net_name %>_z<%= z %>
     persistent_disk: 0
     networks:
       - name: <%= app_net_name %>
@@ -893,7 +893,7 @@ jobs:
       - name: ca_truster
       - name: nfs_mounter
     instances: <%= api_instances %>
-    resource_pool: large_<%= app_net_name %>_<%= z %>
+    resource_pool: large_<%= app_net_name %>_z<%= z %>
     networks:
       - name: <%= app_net_name %>
         default: [dns, gateway]
@@ -905,7 +905,7 @@ jobs:
       - name: metron_agent
       - name: ca_truster
     instances: <%= runner_instances %>
-    resource_pool: dea_<%= app_net_name %>_<%= z %>
+    resource_pool: dea_<%= app_net_name %>_z<%= z %>
     networks:
       - name: <%= app_net_name %>
         default: [dns, gateway]
