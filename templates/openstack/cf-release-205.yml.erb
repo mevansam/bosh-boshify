@@ -3,7 +3,7 @@
   max_in_flight_thread_count = '8'
   my_common_password = 'c1oudc0wc1oudc0w'
 
-  cf_release = 205
+  cf_release_version = 205
 
   # Number of instances per zone
 
@@ -24,17 +24,25 @@
   # Upload BOSH Releases for this manifest
   #
 
-  exists = `bosh stemcells | awk '$4=="#{ENV['STEMCELL_VERSION']}" { print $6 }'`.chomp
-  `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist` if exists.empty?
-  raise "Error uploading stemcell." unless $?.success?
+  exists = `bosh stemcells | awk '$4=="#{ENV['STEMCELL_VERSION']}" { print $6 }' 2> /dev/null`.chomp
+  if exists.empty?
+    STDERR.print("Uploading stemcell #{ENV['STEMCELL_PATH']}...\n")
+    `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist`
+    raise "Error uploading stemcell." unless $?.success?
+  end
 
-  exists = `bosh releases | awk '$2=="cf" && $4=="#{cf_release}" { print $6 }'`.chomp
-  `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=#{cf_release} --skip-if-exist` if exists.empty?
-  raise "Error uploading CF release #{cf_release}." unless $?.success?
+  exists = `bosh releases | awk '$2=="cf" && $4=="#{cf_release_version}" { print $6 }' 2> /dev/null`.chomp
+  if exists.empty?
+    STDERR.print("Uploading CF release #{cf_release_version}...\n")
+    `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=#{cf_release_version} --skip-if-exist`
+    raise "Error uploading CF release #{cf_release_version}." unless $?.success?
+  end
 
   #
   # Do not change any code below as it sources values from the environment
   #
+
+  STDERR.print("Sourcing OpenStack environment...\n")
 
   $:.unshift ENV['ROOT_DIR']
   require 'lib/openstack/network'
@@ -182,6 +190,8 @@
   uaa_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
   clockglobal_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
   doppler_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+
+  STDERR.print("Manifest generation complete...\n")
 -%>
 ---
 name: <%= deployment_name %>
@@ -189,7 +199,7 @@ director_uuid: <%= director_uuid %>
 
 releases:
   - name: cf
-    version: <%= cf_release %>
+    version: <%= cf_release_version %>
 
 properties:
   networks:
