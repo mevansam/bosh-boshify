@@ -25,11 +25,11 @@
   #
 
   exists = `bosh stemcells | awk '$4=="#{ENV['STEMCELL_VERSION']}" { print $6 }'`.chomp
-  `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist` unless exists.empty?
+  `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist` if exists.empty?
   raise "Error uploading stemcell." unless $?.success?
 
   exists = `bosh releases | awk '$2=="cf" && $4=="#{cf_release}" { print $6 }'`.chomp
-  `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=#{cf_release} --skip-if-exist` unless exists.empty?
+  `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=#{cf_release} --skip-if-exist` if exists.empty?
   raise "Error uploading CF release #{cf_release}." unless $?.success?
 
   #
