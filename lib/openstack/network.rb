@@ -1,10 +1,22 @@
-class Subnet
+class Network
     require 'ipaddr'
+
+    attr_reader :uuid
+    attr_reader :subnet_uuid
+    attr_reader :subnet_cidr
 
     attr_reader :gateway_ip
 
-    def initialize(subnet_uuid)
-        subnet_detail = `neutron --insecure subnet-show #{subnet_uuid} 2> /dev/null`.lines
+    def initialize(name)
+
+        network = `neutron --insecure net-list 2> /dev/null | grep "#{name}"`.split(/[ \|]/).select { |v| !v.strip.empty? }
+        raise "Error retrieving uuid of network '#{name}'." unless $?.success?
+
+        @uuid = network[0]
+        @subnet_uuid = network[2]
+        @subnet_cidr = network[3]
+
+        subnet_detail = `neutron --insecure subnet-show #{@subnet_uuid} 2> /dev/null`.lines
         raise "Error retrieving subnet details" unless $?.success?
 
         @gateway_ip = subnet_detail.select { |l| l[/gateway_ip/,0] }.first[/(\d+\.\d+\.\d+\.\d+)/, 1]
@@ -15,7 +27,7 @@ class Subnet
         last = IPAddr.new(allocation_pool[/\"end\": \"(\d+\.\d+\.\d+\.\d+)\"/, 1]).succ
 
         allocated_ips = `neutron --insecure port-list 2> /dev/null | grep "#{subnet_uuid}"`.lines.each.map { |l| IPAddr.new(l[/\d+\.\d+\.\d+\.\d+/, 0]) }
-        allocated_ips.select! { |i| (i<=>ip)>0 }
+        allocated_ips.select! { |i| (i<=>ip)>=0 }
         allocated_ips << last
         allocated_ips.sort!
         allocated_ips.reverse!
@@ -31,7 +43,7 @@ class Subnet
                 ip_range << ip
                 ip = ip.succ
             end 
-            @ip_ranges << ip_range
+            @ip_ranges << ip_range if !ip_range.empty?
             ip = ip.succ
             reserved_ip = allocated_ips.pop
             if (reserved_ip<=>last)!=0

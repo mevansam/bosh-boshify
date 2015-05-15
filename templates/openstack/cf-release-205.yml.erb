@@ -1,698 +1,193 @@
 <%
-director_uuid = ' a7d26d72-f7c2-461b-894c-1ac33d84f368'
-system_domain = 'cfsys-eng2.dev.nam.nsroot.net'
-app_domains = 'cfapps-eng2.dev.nam.nsroot.net'
-deployment_name = 'cf'
-cf_release = '205'
-protocol = 'http'
-compilation_network_name = 'internal'
+  protocol = 'http'
+  max_in_flight_thread_count = '8'
+  my_common_password = 'c1oudc0wc1oudc0w'
 
-cf_instance_tiny = 'cf1.tiny'
-cf_instance_small = 'cf1.small'
-cf_instance_medium = 'cf1.medium'
-cf_instance_large = 'cf1.large'
-cf_instance_dea = 'cf1.dea'
+  # Number of instances per zone
 
-instance_type_compilation = 'cf1.large'
+  uaa_instances = 1
+  login_instances = 1
+  nats_instances = 1
+  etcd_instances = 1
+  hm9000_instances = 1
+  cc_worker_instances = 1
+  haproxy_instances = 1
+  gorouter_instances = 1
+  api_instances = 1
+  runner_instances = 1
+  doppler_instances = 1
+  loggregator_instances = 1
 
-compilation_availability_zone = 'gtdc-pod01-az1'
-max_in_flight_thread_count = '8'
+  #
+  # Do not change any code below as it sources values from the environment
+  #
 
-cf_internal_network_name = 'internal'
-cf_floating_network_name = 'floating'
-cf_internal_subnet_range = '192.168.10.0/24'
-cf_internal_gateway = '192.168.10.1'
-cf_internal_net_id = '5ab93436-20c0-47f2-ace1-a71e5bfa6ce6'
+  $:.unshift ENV['ROOT_DIR']
+  require 'lib/openstack/network'
 
-recursor_ip1 = '192.193.215.65'
-recursor_ip2 = '192.193.215.69'
-recursor_ip3 = '192.193.215.73'
+  director_uuid = ENV['DIRECTOR_UID']
+  deployment_name = ENV['ENV_NAME']+'-cf'
 
-stemcell = 'bosh-openstack-kvm-ubuntu-trusty-go_agent-raw'
+  system_domain = ENV['SYSTEM_DOMAIN']
+  app_domains = ENV['APP_DOMAIN']
 
-availability_zone_1 = "gtdc-pod01-az1"
-availability_zone_2 = "gtdc-pod02-az2"
+  cf_instance_tiny = ENV['FLAVOR_TINY']
+  cf_instance_small = ENV['FLAVOR_SMALL']
+  cf_instance_medium = ENV['FLAVOR_MEDIUM']
+  cf_instance_large = ENV['FLAVOR_LARGE']
+  cf_instance_dea = ENV['FLAVOR_XLARGE']
 
-blobstore_ip = '192.168.10.21'
+  instance_type_compilation = ENV['FLAVOR_LARGE']
 
-nats_instances_z1 = '2'
-nats_instances_z2 = '2'
+  if ENV['USE_AVAILABILITY_ZONES']=='yes'
+    availability_zones = `nova --insecure aggregate-list 2> /dev/null`.lines.select { |l| l[/\| [0-9]+/] }.map { |l| l[/\|\s+(\w+)\s+\|$/, 1] }
+    compilation_availability_zone = availability_zones.first
+  else
+    availability_zones = [ nil ]
+    compilation_availability_zone = nil
+  end
 
-nats_ip1_z1 = '192.168.10.22'
-nats_ip2_z1 = '192.168.10.23'
-nats_ip1_z2 = '192.168.10.24'
-nats_ip2_z2 = '192.168.10.25'
+  stemcell = ENV['STEMCELL_NAME']
 
-etcd_instances_z1 = '1'
+  # Retrieve network information
 
-etcd_ip_z1 = '192.168.10.26'
+  dns_ips = ENV['DNS_SERVERS']
 
-hm9000_instances_z1 = '1'
-hm9000_instances_z2 = '1'
+  public_net_name = ENV['PUBLIC_NETWORK']
+  app_net_name = ENV['APP_NETWORK']
+  services_net_name = ENV['SERVICES_NETWORK']
+  infra_net_name = ENV['INFRA_NETWORK']
 
-hm9000_ip_z1 = '192.168.10.27'
-hm9000_ip_z2 = '192.168.10.28'
+  networks = { }
 
-uaa_instances_z1 = '1'
-uaa_instances_z2 = '1'
+  networks[app_net_name] = app_network = Network.new(app_net_name)
+  app_net_static_block = app_network.allocate_block(10)
+  app_net_dynamic_block = app_network.allocate_block(90)
 
-uaa_ip_z1 = '192.168.10.29'
-uaa_ip_z2 = '192.168.10.30'
+  if services_net_name==app_net_name
+    networks[services_net_name] = services_network = Network.new(services_net_name)
+    services_net_static_block = services_network.allocate_block(10)
+    services_net_dynamic_block = services_network.allocate_block(90)
+  else
+    networks[services_net_name] = services_network = app_network
+    services_net_static_block = app_net_static_block
+    services_net_dynamic_block = app_net_dynamic_block
+  end
+  if infra_net_name==services_net_name
+    networks[infra_net_name] = infra_network = Network.new(infra_net_name)
+    infra_net_static_block = infra_network.allocate_block(10)
+    infra_net_dynamic_block = infra_network.allocate_block(90)
+  else
+    networks[infra_net_name] = infra_network = services_network
+    infra_net_static_block = services_net_static_block
+    infra_net_dynamic_block = services_net_dynamic_block
+  end
 
-login_instances_z1 = '1'
-login_instances_z2 = '1'
+  nats_ips = [ ]
+  availability_zones.size.times do
+    ips = [ ]
+    nats_instances.times do
+      ips << infra_network.get_static_ip(infra_net_static_block)
+    end
+    nats_ips << ips
+  end
 
-login_ip1_z1 = '192.168.10.31'
-login_ip1_z2 = '192.168.10.32'
+  etcd_ips = [ ]
+  availability_zones.size.times do
+    ips = [ ]
+    etcd_instances.times do
+      ips << infra_network.get_static_ip(infra_net_static_block)
+    end
+    etcd_ips << ips
+  end
 
-haproxy_instances_z1 = '2'
-haproxy_external_static_ip1_z1 = '10.116.29.241'
-haproxy_external_static_ip2_z1 = '10.116.29.242'
-haproxy_internal_static_ip1_z1 = '192.168.10.246'
-haproxy_internal_static_ip2_z1 = '192.168.10.247'
+  gorouter_ips = [ ]
+  availability_zones.size.times do
+    ips = [ ]
+    gorouter_instances.times do
+      ips << app_network.get_static_ip(app_net_static_block)
+    end
+    gorouter_ips << ips
+  end
 
-haproxy_instances_z2 = '2'
-haproxy_external_static_ip1_z2 = '10.116.29.243'
-haproxy_external_static_ip2_z2 = '10.116.29.244'
-haproxy_internal_static_ip1_z2 = '192.168.10.248'
-haproxy_internal_static_ip2_z2 = '192.168.10.249'
+  blobstore_ip = infra_network.get_static_ip(infra_net_static_block)
+  postgres_ip = infra_network.get_static_ip(infra_net_static_block)
 
-gorouter_instances_z1 = '2'
-gorouter_instances_z2 = '2'
+  # Retrieve floating/public IP for the haproxy instances
 
-gorouter_ip1_z1 = '192.168.10.250'
-gorouter_ip2_z1 = '192.168.10.251'
-gorouter_ip1_z2 = '192.168.10.252'
-gorouter_ip2_z2 = '192.168.10.253'
+  vips = `nova --insecure floating-ip-list 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{public_net_name}/, 0] }.each.map { |l| l[/\d+\.\d+\.\d+\.\d+/, 0] }
+  raise "Error reading available public IPs." unless $?.success?
 
-api_instances_z1 = '2'
-api_instances_z2 = '2'
+  haproxy_ips = [ ]
+  haproxy_public_ips = [ ]
+  availability_zones.size.times do
+    ips = [ ]
+    public_ips = [ ]
+    haproxy_instances.times do
+      ips << app_network.get_static_ip(app_net_static_block)
+      if vips.empty?
+        public_ips << vips.pop
+      else
+        public_ips << `nova --insecure floating-ip-create #{ENV['PUBLIC_NETWORK']} 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{public_net_name}/, 0] }.first[/\d+\.\d+\.\d+\.\d+/, 0]
+      end
+    end
+    haproxy_ips << ips
+    haproxy_public_ips << public_ips
+  end
 
-api_ip1_z1 = '192.168.10.33'
-api_ip2_z1 = '192.168.10.34'
-api_ip1_z2 = '192.168.10.35'
-api_ip2_z2 = '192.168.10.36'
+  # Autogenerated passwords
 
-clock_ip_z1 = '192.168.10.40'
-
-cc_worker_instances_z1 = '2'
-cc_worker_instances_z2 = '2'
-cc_worker_ip1_z1 = '192.168.10.41'
-cc_worker_ip2_z1 = '192.168.10.42'
-cc_worker_ip1_z2 = '192.168.10.43'
-cc_worker_ip2_z2 = '192.168.10.44'
-
-loggregator_instances_z1 = '1'
-
-loggregator_ip_z1 = '192.168.10.37'
-
-loggregator_trafficcontroller_instances_z1 = '1'
-
-loggregator_trafficcontroller_ip_z1 = '192.168.10.38'
-
-runner_instances_z1 = '2'
-runner_instances_z2 = '2'
-
-postgres_instances_z1 = '1'
-
-postgres_ip_z1 = '192.168.10.39'
-
-doppler_ip_z1 = '192.168.10.45'
-doppler_ip_z2 = '192.168.10.46'
-
-graphite_ip = '127.0.0.1'
-
-nats_password = 'c1oudc0wc1oudc0w'
-nfs_server_password = 'c1oudc0wc1oudc0w'
-ccadmin_password = 'c1oudc0wc1oudc0w'
-uaaadmin_password = 'c1oudc0wc1oudc0w'
-consoleadmin_password = 'c1oudc0wc1oudc0w'
-appusageserviceadmin_password = 'c1oudc0wc1oudc0w'
-bulk_api_password = 'c1oudc0wc1oudc0w'
-staging_upload_password = 'c1oudc0wc1oudc0w'
-db_encryption_password = 'c1oudc0wc1oudc0w'
-dea_logging_agent_admin_password = 'c1oudc0wc1oudc0w'
-loggregator_endpoint_shared_secret_password = 'c1oudc0wc1oudc0w'
-metron_endpoint_shared_secret_password = 'c1oudc0wc1oudc0w'
-gorouter_password = 'c1oudc0wc1oudc0w'
-uaa_cc_client_secret_password = 'c1oudc0wc1oudc0w'
-uaa_admin_client_secret_password = 'c1oudc0wc1oudc0w'
-uaa_batch_client_secret_password = 'c1oudc0wc1oudc0w'
-uaa_login_password = 'c1oudc0wc1oudc0w'
-uaa_portal_password = 'c1oudc0wc1oudc0w'
-uaa_cc_service_broker_client_password = 'c1oudc0wc1oudc0w'
-console_admin_password = 'c1oudc0wc1oudc0w'
-services_password = 'c1oudc0wc1oudc0w'
-etcd_password = 'c1oudc0wc1oudc0w'
-runner_password = 'c1oudc0wc1oudc0w'
-loggregator_password = 'c1oudc0wc1oudc0w'
-cloud_controller_password = 'c1oudc0wc1oudc0w'
-health_monitor_password = 'c1oudc0wc1oudc0w'
-login_password = 'c1oudc0wc1oudc0w'
-uaa_password = 'c1oudc0wc1oudc0w'
-clockglobal_password = 'c1oudc0wc1oudc0w'
-doppler_password = 'c1oudc0wc1oudc0w'
-my_common_password = 'c1oudc0wc1oudc0w'
-%>
+  nats_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  nfs_server_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  ccadmin_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaaadmin_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  consoleadmin_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  appusageserviceadmin_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  bulk_api_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  staging_upload_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  db_encryption_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  dea_logging_agent_admin_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  loggregator_endpoint_shared_secret_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  metron_endpoint_shared_secret_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  gorouter_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_cc_client_secret_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_admin_client_secret_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_batch_client_secret_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_login_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_portal_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_cc_service_broker_client_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  console_admin_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  services_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  etcd_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  runner_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  loggregator_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  cloud_controller_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  health_monitor_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  login_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  uaa_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  clockglobal_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+  doppler_password = [*('a'..'z'),*('0'..'9')].shuffle[0,16].join
+-%>
+---
 name: <%= deployment_name %>
 director_uuid: <%= director_uuid %>
 
 releases:
   - name: cf
-    version: <%= cf_release %>
-
-compilation:
-  workers: 8
-  network: <%= compilation_network_name %>
-  reuse_compilation_vms: true
-  cloud_properties:
-    instance_type: <%= instance_type_compilation %>
-    availability_zone: <%= compilation_availability_zone %>
-
-update:
-  canaries: 1
-  canary_watch_time: 30000-600000
-  update_watch_time: 30000-600000
-  max_in_flight: <%= max_in_flight_thread_count %>
-  serial: false
-
-networks:
-  - name: <%= cf_internal_network_name %>
-    type: manual
-    subnets:
-      - range: <%= cf_internal_subnet_range %>
-        gateway: <%= cf_internal_gateway %>
-        dns: 
-          - <%= recursor_ip1 %>
-          - <%= recursor_ip2 %>
-          - <%= recursor_ip3 %>
-        reserved: ['192.168.10.2 - 192.168.10.20']
-        static:
-          - 192.168.10.21 - 192.168.10.80
-          - 192.168.10.246 - 192.168.10.254
-        cloud_properties:
-          net_id: <%= cf_internal_net_id %>
-
-  - name: <%= cf_floating_network_name %>
-    type: vip
-    cloud_properties: {}
-
-resource_pools:
-  - name: tiny_z1
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_tiny %>
-      availability_zone: <%= availability_zone_1 %>
-
-  - name: tiny_z2
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_tiny %>
-      availability_zone: <%= availability_zone_2 %>
-
-  - name: small_z1
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_small %>
-      availability_zone: <%= availability_zone_1 %>
-
-  - name: small_z2
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_small %>
-      availability_zone: <%= availability_zone_2 %>
-
-  - name: medium_z1
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_medium %>
-      availability_zone: <%= availability_zone_1 %>
-
-  - name: medium_z2
-    network: <%= cf_internal_network_name %>
-    stemcell:
-     name: <%= stemcell %>
-     version: latest
-    cloud_properties:
-     instance_type: <%= cf_instance_medium %>
-     availability_zone: <%= availability_zone_2 %>
-
-  - name: large_z1
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_large %>
-      availability_zone: <%= availability_zone_1 %>
-
-  - name: large_z2
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_large %>
-      availability_zone: <%= availability_zone_2 %>
-
-  - name: dea_z1
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_dea %>
-      availability_zone: <%= availability_zone_1 %>
-
-  - name: dea_z2
-    network: <%= cf_internal_network_name %>
-    stemcell:
-      name: <%= stemcell %>
-      version: latest
-    cloud_properties:
-      instance_type: <%= cf_instance_dea %>
-      availability_zone: <%= availability_zone_2 %>
-
-jobs:
-  - name: nfs_server
-    templates:
-      - name: debian_nfs_server
-      - name: ca_truster
-    instances: 1
-    resource_pool: small_z1
-    persistent_disk: 102400
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= blobstore_ip %>
-        default: [dns, gateway]
-
-  - name: postgres_z1
-    templates:
-      - name: postgres
-      - name: ca_truster
-    instances: <%= postgres_instances_z1 %>
-    resource_pool: large_z1
-    persistent_disk: 10240
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= postgres_ip_z1 %>
-        default: [dns, gateway]
-
-  - name: nats_z1
-    templates:
-      - name: nats
-      - name: nats_stream_forwarder
-      - name: ca_truster
-    instances: <%= nats_instances_z1 %>
-    resource_pool: medium_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= nats_ip1_z1 %>
-          - <%= nats_ip2_z1 %>
-        default: [dns, gateway]
-
-  - name: nats_z2
-    templates:
-      - name: nats
-      - name: nats_stream_forwarder
-      - name: ca_truster
-    instances: <%= nats_instances_z2 %>
-    resource_pool: medium_z2
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= nats_ip1_z2 %>
-          - <%= nats_ip2_z2 %>
-        default: [dns, gateway]
-
-  - name: etcd_z1
-    templates:
-      - name: etcd
-      - name: etcd_metrics_server
-      - name: ca_truster
-    instances: 1
-    resource_pool: small_z1
-    persistent_disk: 1024
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= etcd_ip_z1 %>
-        default: [dns, gateway]
-
-  - name: hm9000_z1
-    templates:
-      - name: hm9000
-      - name: ca_truster
-    instances: <%= hm9000_instances_z1 %>
-    resource_pool: medium_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= hm9000_ip_z1 %>
-        default: [dns, gateway]
-
-  - name: hm9000_z2
-    templates:
-      - name: hm9000
-      - name: ca_truster
-    instances: <%= hm9000_instances_z2 %>
-    resource_pool: medium_z2
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= hm9000_ip_z2 %>
-        default: [dns, gateway]
-
-  - name: uaa_z1
-    templates:
-      - name: uaa
-      - name: ca_truster
-    instances: <%= uaa_instances_z1 %>
-    resource_pool: small_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= uaa_ip_z1 %>
-        default: [dns, gateway]
-
-  - name: uaa_z2
-    templates:
-      - name: uaa
-      - name: ca_truster
-    instances: <%= uaa_instances_z2 %>
-    resource_pool: small_z2
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= uaa_ip_z2 %>
-        default: [dns, gateway]
-
-  - name: login_z1
-    templates:
-      - name: login
-      - name: ca_truster
-    instances: <%= login_instances_z1 %>
-    resource_pool: small_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= login_ip1_z1 %>
-        default: [dns, gateway]
-
-  - name: login_z2
-    templates:
-      - name: login
-      - name: ca_truster
-    instances: <%= login_instances_z2 %>
-    resource_pool: small_z2
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= login_ip1_z2 %>
-        default: [dns, gateway]
-
-  - name: ha_proxy_z1
-    templates:
-      - name: haproxy
-      - name: metron_agent
-      - name: ca_truster
-    instances: <%= haproxy_instances_z1 %>
-    resource_pool: medium_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_floating_network_name %>
-        static_ips:
-          - <%= haproxy_external_static_ip1_z1 %>
-          - <%= haproxy_external_static_ip2_z1 %>
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= haproxy_internal_static_ip1_z1 %>
-          - <%= haproxy_internal_static_ip2_z1 %>
-        default: [dns, gateway]
-    properties:
-      networks:
-        apps: <%= cf_floating_network_name %>
-
-  - name: ha_proxy_z2
-    templates:
-      - name: haproxy
-      - name: metron_agent
-      - name: ca_truster
-    instances: <%= haproxy_instances_z2 %>
-    resource_pool: medium_z2
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_floating_network_name %>
-        static_ips:
-          - <%= haproxy_external_static_ip1_z2 %>
-          - <%= haproxy_external_static_ip2_z2 %>
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= haproxy_internal_static_ip1_z2 %>
-          - <%= haproxy_internal_static_ip2_z2 %>
-        default: [dns, gateway]
-    properties:
-      networks:
-        apps: <%= cf_floating_network_name %>
-
-  - name: gorouter_z1
-    templates:
-      - name: gorouter
-      - name: metron_agent
-      - name: ca_truster
-    instances: <%= gorouter_instances_z1 %>
-    resource_pool: medium_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= gorouter_ip1_z1 %>
-          - <%= gorouter_ip2_z1 %>
-        default: [dns, gateway]
-
-  - name: gorouter_z2
-    templates:
-      - name: gorouter
-      - name: metron_agent
-      - name: ca_truster
-    instances: <%= gorouter_instances_z2 %>
-    resource_pool: medium_z2
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= gorouter_ip1_z2 %>
-          - <%= gorouter_ip2_z2 %>
-        default: [dns, gateway]
-
-  - name: api_z1
-    templates:
-      - name: cloud_controller_ng
-      - name: metron_agent
-      - name: ca_truster
-      - name: nfs_mounter
-    instances: <%= api_instances_z1 %>
-    resource_pool: large_z1
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= api_ip1_z1 %>
-          - <%= api_ip2_z1 %>
-        default: [dns, gateway]
-
-  - name: api_z2
-    templates:
-      - name: cloud_controller_ng
-      - name: metron_agent
-      - name: ca_truster
-      - name: nfs_mounter
-    instances: <%= api_instances_z2 %>
-    resource_pool: large_z2
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= api_ip1_z2 %>
-          - <%= api_ip2_z2 %>
-        default: [dns, gateway]
-
-  - name: cc_worker_z1
-    templates:
-      - name: cloud_controller_worker
-      - name: metron_agent
-      - name: ca_truster
-      - name: nfs_mounter
-    instances: <%= cc_worker_instances_z1 %>
-    resource_pool: medium_z1
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= cc_worker_ip1_z1 %>
-          - <%= cc_worker_ip2_z1 %>
-        default: [dns, gateway]
-
-  - name: cc_worker_z2
-    templates:
-      - name: cloud_controller_worker
-      - name: metron_agent
-      - name: ca_truster
-      - name: nfs_mounter
-    instances: <%= cc_worker_instances_z2 %>
-    resource_pool: medium_z2
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= cc_worker_ip1_z2 %>
-          - <%= cc_worker_ip2_z2 %>
-        default: [dns, gateway]
-
-  - name: clock_z1
-    templates:
-      - name: cloud_controller_clock
-      - name: metron_agent
-      - name: ca_truster
-      - name: nfs_mounter
-    instances: 1
-    resource_pool: small_z1
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= clock_ip_z1 %>
-        default: [dns, gateway]
-
-  - name: doppler_z1
-    templates:
-      - name: doppler
-      - name: ca_truster
-      - name: consul_agent
-      - name: syslog_drain_binder
-    instances: 1
-    resource_pool: small_z1
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= doppler_ip_z1 %>
-        default: [dns, gateway]
-    properties:
-      doppler:
-        zone: zone
-      traffic_controller:
-        zone: zone
-      consul:
-        agent:
-          servers:
-            lan: []
-          services:
-          - cloud_controller_ng
-
-  - name: doppler_z2
-    templates:
-      - name: doppler
-      - name: ca_truster
-      - name: consul_agent
-      - name: syslog_drain_binder
-    instances: 1
-    resource_pool: small_z2
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= doppler_ip_z2 %>
-        default: [dns, gateway]
-    properties:
-      doppler:
-        zone: zone
-      traffic_controller:
-        zone: zone
-      consul:
-        agent:
-          servers:
-            lan: []
-          services:
-          - cloud_controller_ng
-
-
-  - name: loggregator_trafficcontroller_z1
-    templates:
-      - name: loggregator_trafficcontroller
-      - name: ca_truster
-    instances: 1
-    resource_pool: medium_z1
-    networks:
-      - name: <%= cf_internal_network_name %>
-        static_ips:
-          - <%= loggregator_trafficcontroller_ip_z1 %>
-        default: [dns, gateway]
-
-  - name: runner_z1
-    templates:
-      - name: dea_next
-      - name: dea_logging_agent
-      - name: metron_agent
-      - name: ca_truster
-    instances: <%= runner_instances_z1 %>
-    resource_pool: dea_z1
-    networks:
-      - name: <%= cf_internal_network_name %>
-        default: [dns, gateway]
-
-  - name: runner_z2
-    templates:
-      - name: dea_next
-      - name: dea_logging_agent
-      - name: metron_agent
-      - name: ca_truster
-    instances: <%= runner_instances_z2 %>
-    resource_pool: dea_z2
-    networks:
-      - name: <%= cf_internal_network_name %>
-        default: [dns, gateway]
-
-  - name: collector
-    templates:
-      - name: collector
-      - name: ca_truster
-    instances: 1
-    resource_pool: small_z1
-    persistent_disk: 0
-    networks:
-      - name: <%= cf_internal_network_name %>
-        default: [dns, gateway]
+    version: 205
 
 properties:
   networks:
-    apps: <%= cf_internal_network_name %>
+    apps: <%= infra_net_name %>
   ca_truster:
     certificates: []
   domain: <%= system_domain %>
   system_domain: <%= system_domain %>
   system_domain_organization: system
   app_domains:
-    - <%= app_domains %>
+<% app_domains.split(',').each do |domain| -%>
+    - <%= domain %>
+<% end -%>
 
   ssl:
     skip_cert_verify: true
@@ -749,19 +244,30 @@ properties:
   nats:
     user: nats
     password: <%= nats_password %>
-    address: <%= nats_ip1_z1 %>
     port: 4222
     machines:
-      - <%= nats_ip1_z1 %>
+<% nats_ips.each do |z| -%>
+<% z.each do |ip| -%>
+      - <%= ip %>
+<% end -%>
+<% end -%>
 
   etcd:
     machines:
-      - <%= etcd_ip_z1 %>
+<% etcd_ips.each do |z| -%>
+<% z.each do |ip| -%>
+      - <%= ip %>
+<% end -%>
+<% end -%>
 
   etcd_metrics_server:
     nats:
       machines:
-        - <%= nats_ip1_z1 %>
+<% nats_ips.each do |z| -%>
+<% z.each do |ip| -%>
+        - <%= ip %>
+<% end -%>
+<% end -%>
       username: nats
       password: <%= nats_password %>
 
@@ -771,17 +277,18 @@ properties:
     address: <%= blobstore_ip %>
     no_root_squash: true
     allow_from_entries:
-      - <%= cf_internal_subnet_range %>
+      - <%= app_network.subnet_cidr %>
+      - <%= infra_network.subnet_cidr %>
     idmapd_domain: openstacklocal
 
   databases: &databases
     db_scheme: postgres
-    address: <%= postgres_ip_z1 %>
+    address: <%= postgres_ip %>
     port: 5524
     roles:
       - tag: admin
         name: ccadmin
-        password: <%= ccadmin_password %>
+        password: <%= ccadmin_password %>`
       - tag: admin
         name: uaaadmin
         password: <%= uaaadmin_password %>
@@ -804,7 +311,7 @@ properties:
 
   ccdb: &ccdb
     db_scheme: postgres
-    address: <%= postgres_ip_z1 %>
+    address: <%= postgres_ip %>
     port: 5524
     roles:
       - tag: admin
@@ -815,16 +322,9 @@ properties:
         name: ccdb
         citext: true
 
-  collector:
-      my_deployment_name: <%= deployment_name %>
-      use_graphite: false
-      graphite:
-        address: <%= graphite_ip %>
-        port: 2003
-
   uaadb:
     db_scheme: postgresql
-    address: <%= postgres_ip_z1 %>
+    address: <%= postgres_ip %>
     port: 5524
     roles:
       - tag: admin
@@ -837,7 +337,7 @@ properties:
 
   consoledb:
     db_scheme: postgres
-    address: <%= postgres_ip_z1 %>
+    address: <%= postgres_ip %>
     port: 5524
     roles:
       - tag: admin
@@ -1055,12 +555,12 @@ properties:
       user: gorouter
       password: <%= gorouter_password %>
     servers:
-      z1:
-        - <%= gorouter_ip1_z1 %>
-        - <%= gorouter_ip2_z1 %>
-      z2:
-        - <%= gorouter_ip1_z2 %>
-        - <%= gorouter_ip2_z2 %>
+<% gorouter_ips.size.times do |z| -%>
+      z<%= z %>:
+<% gorouter_ips[z].each do |ip| -%>
+        - <%= ip %>
+<% end -%>
+<% end -%>
 
   uaa:
     url: <%= protocol %>://uaa.<%= system_domain %>
@@ -1194,3 +694,333 @@ properties:
         qHxf+ZH9BL1gk9Y6kCnbM5R60gfwjyW1/dQPjOzn9N394zd2FJoFHwdq9Qs0wBug
         spULZVNRxq7veq/fzwIDAQAB
         -----END PUBLIC KEY-----
+
+#-----------#
+# Instances #
+#-----------#
+
+jobs:
+
+  # Singleton jobs
+
+  - name: postgres
+    templates:
+      - name: postgres
+      - name: ca_truster
+    instances: 1
+    resource_pool: large_<%= infra_net_name %>_z0
+    persistent_disk: 10240
+    networks:
+      - name: <%= infra_net_name %>
+        static_ips:
+          - <%= postgres_ip %>
+        default: [dns, gateway]
+
+  - name: nfs_server
+    templates:
+      - name: debian_nfs_server
+      - name: ca_truster
+    instances: 1
+    resource_pool: small_<%= infra_net_name %>_z0
+    persistent_disk: 102400
+    networks:
+      - name: <%= infra_net_name %>
+        static_ips:
+          - <%= blobstore_ip %>
+        default: [dns, gateway]
+
+  - name: clock
+    templates:
+      - name: cloud_controller_clock
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: 1
+    resource_pool: small_<%= infra_net_name %>_z0
+    networks:
+      - name: <%= infra_net_name %>
+        default: [dns, gateway]
+
+  # Scaled jobs
+<% availability_zones.size.times do |z| -%>
+
+  - name: uaa_z<%= z %>
+    templates:
+      - name: uaa
+      - name: ca_truster
+    instances: <%= uaa_instances %>
+    resource_pool: small_<%= infra_net_name %>_z<%= z %>
+    persistent_disk: 0
+    networks:
+      - name: <%= infra_net_name %>
+        default: [dns, gateway]
+
+  - name: login_z<%= z %>
+    templates:
+      - name: login
+      - name: ca_truster
+    instances: <%= login_instances %>
+    resource_pool: small_<%= infra_net_name %>_z<%= z %>
+    persistent_disk: 0
+    networks:
+      - name: <%= infra_net_name %>
+        default: [dns, gateway]
+
+  - name: nats_z<%= z %>
+    templates:
+      - name: nats
+      - name: nats_stream_forwarder
+      - name: ca_truster
+    instances: <%= nats_instances %>
+    resource_pool: medium_<%= infra_net_name %>_z<%= z %>
+    persistent_disk: 0
+    networks:
+      - name: <%= infra_net_name %>
+        static_ips:
+<% nats_ips[z].each do |ip| -%>
+          - <%= ip %>
+<% end -%>
+        default: [dns, gateway]
+
+  - name: etcd_z<%= z %>
+    templates:
+      - name: etcd
+      - name: etcd_metrics_server
+      - name: ca_truster
+    instances: <%= etcd_instances %>
+    resource_pool: small_<%= infra_net_name %>_z0
+    persistent_disk: 1024
+    networks:
+      - name: <%= infra_net_name %>
+        static_ips:
+<% etcd_ips[z].each do |ip| -%>
+          - <%= ip %>
+<% end -%>
+        default: [dns, gateway]
+
+  - name: hm9000_z<%= z %>
+    templates:
+      - name: hm9000
+      - name: ca_truster
+    instances: <%= hm9000_instances %>
+    resource_pool: medium_<%= infra_net_name %>_z<%= z %>
+    persistent_disk: 0
+    networks:
+      - name: <%= infra_net_name %>
+        default: [dns, gateway]
+
+  - name: cc_worker_z<%= z %>
+    templates:
+      - name: cloud_controller_worker
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: <%= cc_worker_instances %>
+    resource_pool: medium_<%= infra_net_name %>_z<%= z %>
+    networks:
+      - name: <%= infra_net_name %>
+        default: [dns, gateway]
+
+  - name: ha_proxy_z<%= z %>
+    templates:
+      - name: haproxy
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= haproxy_instances %>
+    resource_pool: medium_<%= app_net_name %>_<%= z %>
+    persistent_disk: 0
+    networks:
+      - name: <%= public_net_name %>
+        static_ips:
+<% haproxy_public_ips[z].each do |ip| -%>
+          - <%= ip %>
+<% end -%>
+      - name: <%= app_net_name %>
+        static_ips:
+<% haproxy_ips[z].each do |ip| -%>
+          - <%= ip %>
+<% end -%>
+        default: [dns, gateway]
+    properties:
+      networks:
+        apps: <%= public_net_name %>
+
+  - name: gorouter_z<%= z %>
+    templates:
+      - name: gorouter
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= gorouter_instances %>
+    resource_pool: medium_<%= app_net_name %>_<%= z %>
+    persistent_disk: 0
+    networks:
+      - name: <%= app_net_name %>
+        static_ips:
+<% gorouter_ips[z].each do |ip| -%>
+          - <%= ip %>
+<% end -%>
+        default: [dns, gateway]
+
+  - name: api_z<%= z %>
+    templates:
+      - name: cloud_controller_ng
+      - name: metron_agent
+      - name: ca_truster
+      - name: nfs_mounter
+    instances: <%= api_instances %>
+    resource_pool: large_<%= app_net_name %>_<%= z %>
+    networks:
+      - name: <%= app_net_name %>
+        default: [dns, gateway]
+
+  - name: runner_z<%= z %>
+    templates:
+      - name: dea_next
+      - name: dea_logging_agent
+      - name: metron_agent
+      - name: ca_truster
+    instances: <%= runner_instances %>
+    resource_pool: dea_<%= app_net_name %>_<%= z %>
+    networks:
+      - name: <%= app_net_name %>
+        default: [dns, gateway]
+
+  - name: doppler_z<%= z %>
+    templates:
+      - name: doppler
+      - name: ca_truster
+      - name: consul_agent
+      - name: syslog_drain_binder
+    instances: <%= doppler_instances %>
+    resource_pool: small_<%= app_net_name %>_z<%= z %>
+    networks:
+      - name: <%= app_net_name %>
+        default: [dns, gateway]
+    properties:
+      doppler:
+        zone: zone
+      traffic_controller:
+        zone: zone
+      consul:
+        agent:
+          servers:
+            lan: []
+          services:
+          - cloud_controller_ng
+
+  - name: loggregator_z<%= z %>
+    templates:
+      - name: loggregator_trafficcontroller
+      - name: ca_truster
+    instances: <%= loggregator_instances %>
+    resource_pool: medium_<%= app_net_name %>_z<%= z %>
+    networks:
+      - name: <%= app_net_name %>
+        default: [dns, gateway]
+
+<% end -%>
+
+#------------------------------#
+# Infrastructure Configuration #
+#------------------------------#
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-600000
+  update_watch_time: 30000-600000
+  max_in_flight: <%= max_in_flight_thread_count %>
+  serial: false
+
+compilation:
+  workers: 8
+  network: <%= infra_net_name %>
+  reuse_compilation_vms: true
+  cloud_properties:
+    instance_type: <%= instance_type_compilation %>
+<% if compilation_availability_zone -%>
+    availability_zone: <%= compilation_availability_zone %>
+<% end -%>
+
+networks:
+  - name: <%= public_net_name %>
+    type: vip
+    cloud_properties: {}
+
+<% networks.each do |name, network| -%>
+  - name: <%= name %>
+    type: manual
+    subnets:
+      - range: <%= network.subnet_cidr %>
+        gateway: <%= network.gateway_ip %>
+<% unless dns_ips.nil? -%>
+        dns:
+<% dns_ips.split(',').each do |dns_ip| -%>
+          - <%= dns_ip %>
+<% end -%>
+<% end -%>
+        reserved: <%= network.get_reserved_ranges %>
+        static: <%= network.get_static_ranges %>
+        cloud_properties:
+          net_id: <%= network.uuid %>
+<% end -%>
+
+resource_pools:
+<% networks.keys.each do |network| -%>
+<% for z in 0..availability_zones.size-1 -%>
+
+  - name: tiny_<%= network %>_z<%= z %>
+    network: <%= network %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_tiny %>
+<% if availability_zones[z] -%>
+      availability_zone: <%= availability_zones[z] %>
+<% end -%>
+
+  - name: small_<%= network %>_z<%= z %>
+    network: <%= network %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_small %>
+<% if availability_zones[z] -%>
+      availability_zone: <%= availability_zones[z] %>
+<% end -%>
+
+  - name: medium_<%= network %>_z<%= z %>
+    network: <%= network %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_medium %>
+<% if availability_zones[z] -%>
+      availability_zone: <%= availability_zones[z] %>
+<% end -%>
+
+  - name: large_<%= network %>_z<%= z %>
+    network: <%= network %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_large %>
+<% if availability_zones[z] -%>
+      availability_zone: <%= availability_zones[z] %>
+<% end -%>
+
+  - name: dea_<%= network %>_z<%= z %>
+    network: <%= network %>
+    stemcell:
+      name: <%= stemcell %>
+      version: latest
+    cloud_properties:
+      instance_type: <%= cf_instance_dea %>
+<% if availability_zones[z] -%>
+      availability_zone: <%= availability_zones[z] %>
+<% end -%>
+<% end -%>
+<% end -%>

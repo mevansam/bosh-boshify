@@ -156,12 +156,11 @@ function set_bosh_target() {
         exit 1
     fi
 
-    export DIRECTOR_UID=$(cat $WORKSPACE_DIR/bosh-init-state.json | awk '/director_id/ { print substr($2,2,length($2)-3) }')
-
     local director_vmuuid=$(cat $WORKSPACE_DIR/bosh-init-state.json | awk '/current_vm_cid/ { print substr($2,2,length($2)-3) }')
     local director_ip=$(nova --insecure show  $director_vmuuid 2> /dev/null | awk -v net="$INFRA_NETWORK" '$2==net && $3=="network" { print $6 }')
 
     bosh -u $BOSH_USER -p $BOSH_PASSWORD target $director_ip
+    export DIRECTOR_UID=$(bosh status | awk '/UUID/ { print $2 }')
 }
 
 function bosh_deploy_release() {
@@ -171,6 +170,10 @@ function bosh_deploy_release() {
         "ERROR encountered while processing the manifest template at '$MANIFEST_TEMPLATE'."
         exit 1
     fi
+
+    bosh deployment $WORKSPACE_DIR/$MANIFEST.yml
+    nohup bosh deploy $WORKSPACE_DIR/$MANIFEST.yml > $WORKSPACE_DIR/$MANIFEST_deploy.log 2>&1 &
+    echo "Bosh deploy running in the background. Output available at $WORKSPACE_DIR/$MANIFEST_deploy.log."
 }
 
 export ROOT_DIR=$(cd $(dirname $0) && pwd)

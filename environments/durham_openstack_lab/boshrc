@@ -21,8 +21,6 @@ export INFRA_NETWORK=private01
 export APP_NETWORK=private01
 export SERVICES_NETWORK=private01
 
-export AVAILABILITY_ZONES=nova
-
 export DNS_SERVERS=10.103.42.135
 export NTP_SERVERS=0.pool.ntp.org,1.pool.ntp.org,2.pool.ntp.org.3.pool.ntp.org
 
@@ -31,6 +29,11 @@ export FLAVOR_SMALL=m1.small
 export FLAVOR_MEDIUM=m1.medium
 export FLAVOR_LARGE=m1.large
 export FLAVOR_XLARGE=m1.xlarge
+
+# "yes" to detect avaiability zones and deploy by zone
+# this will fail if hosts have not been added to the 
+# availability zone host aggregates
+export USE_AVAILABILITY_ZONES=no
 
 export BOSH_USER=admin
 export BOSH_PASSWORD=admin
@@ -43,4 +46,4 @@ export BOSH_STEMCELL_URL=https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-t
 
 # CloudFoundry Environment
 export SYSTEM_DOMAIN=ossys.pcf-services.com
-export APP_DOMAIN==osapps.pcf-services.com
+export APP_DOMAINS=osapps.pcf-services.com

@@ -10,7 +10,7 @@
   #
 
   $:.unshift ENV['ROOT_DIR']
-  require 'lib/subnet'
+  require 'lib/openstack/network'
 
   proxy_host_name = ENV['HTTP_PROXY']
   flavor = ENV['FLAVOR_LARGE']
@@ -27,15 +27,8 @@
 
   # Retrieve network information
 
-  infra_net = `neutron --insecure net-list 2> /dev/null | grep "#{ENV['INFRA_NETWORK']}"`.split(/[ \|]/).select { |v| !v.strip.empty? }
-  raise "Error retrieving infrastructure network uuid." unless $?.success?
-
-  net_uuid = infra_net[0]
-  subnet_uuid = infra_net[2]
-  subnet_cidr = infra_net[3]
-
-  subnet=Subnet.new(subnet_uuid)
-  micro_bosh_ip = subnet.get_static_ip(subnet.allocate_block(1))
+  infra_network=Network.new(ENV['INFRA_NETWORK'])
+  micro_bosh_ip = infra_network.get_static_ip(infra_network.allocate_block(1))
 
   # Retrieve floating/public IP for the director
 
@@ -78,8 +71,8 @@ networks:
 - name: private
   type: manual
   subnets:
-  - range: <%= subnet_cidr %>
-    gateway: <%= subnet.gateway_ip %>
+  - range: <%= infra_network.subnet_cidr %>
+    gateway: <%= infra_network.gateway_ip %>
 <% unless dns_ips.nil? -%>
     dns:
 <% dns_ips.split(',').each do |dns_ip| -%>
@@ -87,7 +80,7 @@ networks:
 <% end -%>
 <% end -%>
     cloud_properties: 
-      net_id: <%= net_uuid %>
+      net_id: <%= infra_network.uuid %>
 - name: public
   type: vip
 
