@@ -91,4 +91,10 @@ class Network
         @static[block] = i+1
         @ip_blocks[block][i]
     end
+
+    def to_s
+        "ip_ranges => #{@ip_ranges.map { |r| "#{r.first} - #{r.last}" }}\n" + 
+        "ip_blocks => #{@ip_blocks.map { |r| "#{r.first} - #{r.last}" }}\n" +
+        "static => #{@static}"
+    end
 end

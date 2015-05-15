@@ -87,7 +87,7 @@
   app_net_static_block = app_network.allocate_block(10)
   app_net_dynamic_block = app_network.allocate_block(90)
 
-  if services_net_name==app_net_name
+  if services_net_name!=app_net_name
     networks[services_net_name] = services_network = Network.new(services_net_name)
     services_net_static_block = services_network.allocate_block(10)
     services_net_dynamic_block = services_network.allocate_block(90)
@@ -96,7 +96,7 @@
     services_net_static_block = app_net_static_block
     services_net_dynamic_block = app_net_dynamic_block
   end
-  if infra_net_name==services_net_name
+  if infra_net_name!=services_net_name
     networks[infra_net_name] = infra_network = Network.new(infra_net_name)
     infra_net_static_block = infra_network.allocate_block(10)
     infra_net_dynamic_block = infra_network.allocate_block(90)
@@ -148,10 +148,10 @@
     public_ips = [ ]
     haproxy_instances.times do
       ips << app_network.get_static_ip(app_net_static_block)
-      if vips.empty?
+      if !vips.empty?
         public_ips << vips.pop
       else
-        public_ips << `nova --insecure floating-ip-create #{ENV['PUBLIC_NETWORK']} 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{public_net_name}/, 0] }.first[/\d+\.\d+\.\d+\.\d+/, 0]
+        public_ips << `nova --insecure floating-ip-create #{public_net_name} 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{public_net_name}/, 0] }.first[/\d+\.\d+\.\d+\.\d+/, 0]
       end
     end
     haproxy_ips << ips
