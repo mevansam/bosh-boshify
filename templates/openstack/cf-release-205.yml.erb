@@ -3,6 +3,8 @@
   max_in_flight_thread_count = '8'
   my_common_password = 'c1oudc0wc1oudc0w'
 
+  cf_release = 205
+
   # Number of instances per zone
 
   uaa_instances = 1
@@ -22,13 +24,13 @@
   # Upload BOSH Releases for this manifest
   #
 
-  puts "Uploading stemcell #{ENV['STEMCELL_PATH']} to Bosh..."
-  `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist`
+  exists = `bosh stemcells | awk '$4=="#{ENV['STEMCELL_VERSION']}" { print $6 }'`.chomp
+  `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist` unless exists.empty?
   raise "Error uploading stemcell." unless $?.success?
 
-  puts "Downloading and uploading CF Release 205 to Bosh..."
-  `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=205 --skip-if-exist`
-  raise "Error uploading CF release 205." unless $?.success?
+  exists = `bosh releases | awk '$2=="cf" && $4=="#{cf_release}" { print $6 }'`.chomp
+  `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=#{cf_release} --skip-if-exist` unless exists.empty?
+  raise "Error uploading CF release #{cf_release}." unless $?.success?
 
   #
   # Do not change any code below as it sources values from the environment
@@ -187,7 +189,7 @@ director_uuid: <%= director_uuid %>
 
 releases:
   - name: cf
-    version: 205
+    version: <%= cf_release %>
 
 properties:
   networks:
