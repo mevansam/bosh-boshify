@@ -133,8 +133,11 @@ function initialize() {
     if [ ! -e "$STEMCELL_PATH" ]; then
         curl -k -J -L https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw?v=2968 -o $STEMCELL_PATH
     fi
-
-    SHA1=$(openssl sha1 .stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw.tgz)
+    if [ ! -e "$STEMCELL_DIR/$STEMCELL_NAME.sha1" ]; then
+        openssl sha1 .stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw.tgz > $STEMCELL_DIR/$STEMCELL_NAME.sha1
+    fi
+    
+    SHA1=$(cat $STEMCELL_DIR/$STEMCELL_NAME.sha1)
     export BOSH_STEMCELL_SHA1=${SHA1#*= }
 }
 
