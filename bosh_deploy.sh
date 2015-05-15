@@ -174,7 +174,7 @@ function bosh_deploy_release() {
 
     bosh deployment $WORKSPACE_DIR/$MANIFEST.yml
     nohup bosh -n deploy > $WORKSPACE_DIR/${MANIFEST}_deploy.log 2>&1 &
-    echo "Bosh deploy running in the background. Output available at $WORKSPACE_DIR/$MANIFEST_deploy.log."
+    echo "Bosh deploy running in the background. Output available at $WORKSPACE_DIR/${MANIFEST}_deploy.log."
 }
 
 export ROOT_DIR=$(cd $(dirname $0) && pwd)
