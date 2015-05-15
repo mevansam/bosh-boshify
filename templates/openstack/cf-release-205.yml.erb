@@ -19,6 +19,18 @@
   loggregator_instances = 1
 
   #
+  # Upload BOSH Releases for this manifest
+  #
+
+  puts "Uploading stemcell #{ENV['STEMCELL_PATH']} to Bosh..."
+  `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist`
+  raise "Error uploading stemcell." unless $?.success?
+
+  puts "Downloading and uploading CF Release 205 to Bosh..."
+  `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=205 --skip-if-exist`
+  raise "Error uploading CF release 205." unless $?.success?
+
+  #
   # Do not change any code below as it sources values from the environment
   #
 
@@ -41,6 +53,7 @@
 
   if ENV['USE_AVAILABILITY_ZONES']=='yes'
     availability_zones = `nova --insecure aggregate-list 2> /dev/null`.lines.select { |l| l[/\| [0-9]+/] }.map { |l| l[/\|\s+(\w+)\s+\|$/, 1] }
+    raise "Error retrieving availability zones." unless $?.success?
     compilation_availability_zone = availability_zones.first
   else
     availability_zones = [ nil ]
