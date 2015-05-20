@@ -24,15 +24,15 @@
   # Upload BOSH Releases for this manifest
   #
 
-  exists = `bosh stemcells | awk '$4=="#{ENV['STEMCELL_VERSION']}" { print $6 }' 2> /dev/null`.chomp
-  if !exists.empty?
+  exists = `bosh stemcells 2> /dev/null | awk '$4~/#{ENV['STEMCELL_VERSION']}(*|+)?/ { print $6 }'`.chomp
+  if exists.empty?
     STDERR.print("Uploading stemcell #{ENV['STEMCELL_PATH']}...\n")
     `bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist`
     raise "Error uploading stemcell." unless $?.success?
   end
 
-  exists = `bosh releases | awk '$2=="cf" && $4=="#{cf_release_version}" { print $6 }' 2> /dev/null`.chomp
-  if !exists.empty?
+  exists = `bosh releases 2> /dev/null | awk '$2=="cf" && $4~/#{cf_release_version}(*|+)?/ { print $6 }'`.chomp
+  if exists.empty?
     STDERR.print("Uploading CF release #{cf_release_version}...\n")
     `bosh upload release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=#{cf_release_version} --skip-if-exist`
     raise "Error uploading CF release #{cf_release_version}." unless $?.success?
@@ -313,7 +313,7 @@ properties:
     roles:
       - tag: admin
         name: ccadmin
-        password: <%= ccadmin_password %>`
+        password: <%= ccadmin_password %>
       - tag: admin
         name: uaaadmin
         password: <%= uaaadmin_password %>
