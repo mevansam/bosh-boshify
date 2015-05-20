@@ -177,7 +177,17 @@ function bosh_deploy_release() {
 
     bosh deployment $WORKSPACE_DIR/$MANIFEST.yml
     nohup bosh -n deploy > $WORKSPACE_DIR/${MANIFEST}_deploy.log 2>&1 &
-    echo "Bosh deploy running in the background. Output available at $WORKSPACE_DIR/${MANIFEST}_deploy.log."
+
+    local task=""
+    while [ -z "$task" ]; do
+        task=$(cat $WORKSPACE_DIR/${MANIFEST}_deploy.log | awk '/Director task/ { print $3 }')
+        sleep 1
+    done
+    nohup bosh task $task --debug > $WORKSPACE_DIR/${MANIFEST}_task_$task.log 2>&1 &
+
+    echo "Bosh deploy running in the background."
+    echo "- Output available at $WORKSPACE_DIR/${MANIFEST}_deploy.log"
+    echo "- Debug logs at $WORKSPACE_DIR/${MANIFEST}_task_$task.log"
 }
 
 export ROOT_DIR=$(cd $(dirname $0) && pwd)
