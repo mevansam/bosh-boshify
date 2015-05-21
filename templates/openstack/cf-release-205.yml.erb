@@ -427,11 +427,11 @@ properties:
     internal_app_disk_in_mb: 1024
     maximum_app_disk_in_mb: 2048
     client_max_body_size: 1536M
-    passwords['bulk_api_password']: <%= passwords['bulk_api_password'] %>
+    bulk_api_password: <%= passwords['bulk_api_password'] %>
     internal_api_user: apiuser
     internal_api_password: <%= passwords['bulk_api_password'] %>
     staging_upload_user: upload
-    passwords['staging_upload_password']: <%= passwords['staging_upload_password'] %>
+    staging_upload_password: <%= passwords['staging_upload_password'] %>
     db_encryption_key: <%= passwords['db_encryption_password'] %>
     disable_custom_buildpacks: false
     broker_client_timeout_seconds: 120
