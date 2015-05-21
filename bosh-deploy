@@ -101,7 +101,7 @@ function initialize() {
     MANIFEST_TEMPLATE="$TEMPLATES_DIR/$MANIFEST.yml.erb"
     BOSHRC_ENV="$ENVIRONMENT_DIR/boshrc"
 
-    WORKSPACE_DIR=$ENVIRONMENT_DIR/.workspace
+    export WORKSPACE_DIR=$ENVIRONMENT_DIR/.workspace
     mkdir -p $WORKSPACE_DIR
 
     if [ ! -e "$MANIFEST_TEMPLATE" ]; then
@@ -175,15 +175,15 @@ function bosh_deploy_release() {
         exit 1
     fi
 
-    bosh deployment $WORKSPACE_DIR/$MANIFEST.yml
-    nohup bosh -n deploy > $WORKSPACE_DIR/${MANIFEST}_deploy.log 2>&1 &
+    #bosh deployment $WORKSPACE_DIR/$MANIFEST.yml
+    #nohup bosh -n deploy > $WORKSPACE_DIR/${MANIFEST}_deploy.log 2>&1 &
 
-    local task=""
-    while [ -z "$task" ]; do
-        task=$(cat $WORKSPACE_DIR/${MANIFEST}_deploy.log | awk '/Director task/ { print $3 }')
-        sleep 1
-    done
-    nohup bosh task $task --debug > $WORKSPACE_DIR/${MANIFEST}_task_$task.log 2>&1 &
+    #local task=""
+    #while [ -z "$task" ]; do
+    #    task=$(cat $WORKSPACE_DIR/${MANIFEST}_deploy.log | awk '/Director task/ { print $3 }')
+    #    sleep 1
+    #done
+    #nohup bosh task $task --debug > $WORKSPACE_DIR/${MANIFEST}_task_$task.log 2>&1 &
 
     echo "Bosh deploy running in the background."
     echo "- Output available at $WORKSPACE_DIR/${MANIFEST}_deploy.log"
