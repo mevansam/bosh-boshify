@@ -105,9 +105,14 @@ function initialize() {
     mkdir -p $WORKSPACE_DIR
 
     if [ ! -e "$MANIFEST_TEMPLATE" ]; then
-        echo "ERROR! Manifest must be one of:"
-        for d in $(ls $TEMPLATES_DIR); do echo "  - ${d%.yml*}"; done
-        exit 1
+        if [ "$MANIFEST_TEMPLATE" == "bosh-init" ]; then
+            echo "ERROR! Bosh-init manifest $MANIFEST_TEMPLATE could not be found."
+            exit 1
+        else
+            echo "ERROR! Manifest must be one of:"
+            for d in $(ls $TEMPLATES_DIR); do [ "$d" == "bosh-init.yml" ] || echo "  - ${d%.yml*}"; done
+            exit 1
+        fi
     fi
     if [ ! -e "$BOSHRC_ENV" ]; then
         echo "ERROR! Bosh environment variable file '$BOSHRC_ENV' not found."
@@ -198,7 +203,7 @@ case "$1" in
         usage
         ;;
     init)
-        initialize $2 $3 $4
+        initialize $2 $3 bosh-init
         bosh_init_deploy
         ;;
     release)
