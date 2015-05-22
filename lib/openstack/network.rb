@@ -8,10 +8,10 @@ class Network
 
     attr_reader :gateway_ip
 
-    def initialize(name, state_file)
+    def initialize(name, state_file = nil)
 
         @state_file = state_file
-        if File.exists?(@state_file)
+        if !@state_file.nil? && File.exists?(@state_file)
             state = YAML.load_file(@state_file)
         end
 
@@ -121,15 +121,18 @@ class Network
 
     def save
 
-        state = { }
-        state['uuid'] = @uuid
-        state['subnet_uuid'] = @subnet_uuid
-        state['subnet_cidr'] = @subnet_cidr
-        state['gateway_ip'] = @gateway_ip
-        state['reserved'] = @reserved.map { |b| b.map { |i| i.to_s } }
-        state['ip_blocks'] = @ip_blocks.map { |b| b.map { |i| i.to_s } }
-        state['ip_ranges'] = @ip_ranges.map { |b| b.map { |i| i.to_s } }
+        unless @state_file.nil
 
-        File.open(@state_file, 'w+') { |f| f.write(state.to_yaml) }
+            state = { }
+            state['uuid'] = @uuid
+            state['subnet_uuid'] = @subnet_uuid
+            state['subnet_cidr'] = @subnet_cidr
+            state['gateway_ip'] = @gateway_ip
+            state['reserved'] = @reserved.map { |b| b.map { |i| i.to_s } }
+            state['ip_blocks'] = @ip_blocks.map { |b| b.map { |i| i.to_s } }
+            state['ip_ranges'] = @ip_ranges.map { |b| b.map { |i| i.to_s } }
+
+            File.open(@state_file, 'w+') { |f| f.write(state.to_yaml) }
+        end
     end
 end
