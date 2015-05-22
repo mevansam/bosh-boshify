@@ -24,7 +24,7 @@
   # Upload BOSH Releases for this manifest
   #
 
-  exists = `bosh stemcells 2> /dev/null | awk '$4~/2968[*+]?/ { print $6 }'`.chomp
+  exists = `bosh stemcells 2> /dev/null | awk '$4~/#{ENV['STEMCELL_VERSION']}[*+]?/ { print $6 }'`.chomp
   if exists.empty?
     STDERR.print("Uploading stemcell #{ENV['STEMCELL_PATH']}.\n")
     #`bosh upload stemcell #{ENV['STEMCELL_PATH']} --skip-if-exist`
