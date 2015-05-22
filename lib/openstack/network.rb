@@ -121,7 +121,7 @@ class Network
 
     def save
 
-        unless @state_file.nil
+        unless @state_file.nil?
 
             state = { }
             state['uuid'] = @uuid

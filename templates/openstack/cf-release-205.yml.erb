@@ -1,7 +1,9 @@
 <%
   protocol = 'http'
   max_in_flight_thread_count = '8'
-  my_common_password = 'c1oudc0wc1oudc0w'
+
+  my_common_password = 'P1v0tal'
+  console_admin_password = 'P1v0tal'
 
   cf_release_version = 205
 
@@ -597,8 +599,8 @@ properties:
       user: gorouter
       password: <%= passwords['gorouter_password'] %>
     servers:
+      z1:
 <% gorouter_ips.size.times do |z| -%>
-      z<%= z %>:
 <% gorouter_ips[z].each do |ip| -%>
         - <%= ip %>
 <% end -%>
@@ -706,7 +708,7 @@ properties:
       user:
         override: false
       users:
-        - admin|<%= passwords['console_admin_password'] %>|scim.write,scim.read,openid,cloud_controller.admin,dashboard.user,console.admin,console.support,doppler.firehose,notification_preferences.read,notification_preferences.write,notifications.manage,notification_templates.read,notification_templates.write,emails.write,notifications.write
+        - admin|<%= console_admin_password %>|scim.write,scim.read,openid,cloud_controller.admin,dashboard.user,console.admin,console.support,doppler.firehose,notification_preferences.read,notification_preferences.write,notifications.manage,notification_templates.read,notification_templates.write,emails.write,notifications.write
         - push_console|<%= passwords['services_password'] %>|cloud_controller.admin
         - smoke_tests|<%= passwords['services_password'] %>|cloud_controller.admin
         - system_services|<%= passwords['services_password'] %>|cloud_controller.admin
