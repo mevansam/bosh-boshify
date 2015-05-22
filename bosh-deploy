@@ -110,7 +110,7 @@ function initialize() {
             exit 1
         else
             echo "ERROR! Manifest must be one of:"
-            for d in $(ls $TEMPLATES_DIR); do [ "$d" == "bosh-init.yml" ] || echo "  - ${d%.yml*}"; done
+            for d in $(ls $TEMPLATES_DIR); do [ "$d" == "bosh-init.yml.erb" ] || echo "  - ${d%.yml*}"; done
             exit 1
         fi
     fi
