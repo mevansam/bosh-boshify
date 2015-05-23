@@ -225,7 +225,7 @@ function bosh_deploy_delete() {
     echo "- Debug logs at $WORKSPACE_DIR/${MANIFEST}_delete_task_$task.log"
 }
 
-export ROOT_DIR=$(cd $(dirname $0) && pwd)
+export ROOT_DIR=$(cd $(dirname $0)/.. && pwd)
 export HOME_DIR=$(pwd)
 
 case "$1" in
