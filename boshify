@@ -4,14 +4,15 @@ function usage() {
 
 cat << EOF
 
-    USAGE: $0 [help | init | release] iaas env name [OPTIONS]
+    USAGE: $0 [help | init | deploy | delete ] iaas env name [OPTIONS]
 
     COMMANDS:
 
         ACTION:
           help - Show this message.
-          init - Deploy Bosh.
+          deploy - Deploy Bosh.
           release - Deploy Release.
+          delete - Delete a bosh deployment.
 
         iaas - Folder container templates for the target IaaS
         env - Folder container the environment variables (i.e. boshrc) 
@@ -188,11 +189,40 @@ function bosh_deploy_release() {
         task=$(cat $WORKSPACE_DIR/${MANIFEST}_deploy.log | awk '/Director task/ { print $3 }')
         sleep 1
     done
-    nohup bosh task $task --debug > $WORKSPACE_DIR/${MANIFEST}_task_$task.log 2>&1 &
+    nohup bosh task $task --debug > $WORKSPACE_DIR/${MANIFEST}_deploy_task_$task.log 2>&1 &
 
     echo "Bosh deploy running in the background."
     echo "- Output available at $WORKSPACE_DIR/${MANIFEST}_deploy.log"
-    echo "- Debug logs at $WORKSPACE_DIR/${MANIFEST}_task_$task.log"
+    echo "- Debug logs at $WORKSPACE_DIR/${MANIFEST}_deploy_task_$task.log"
+}
+
+function bosh_deploy_delete() {
+
+    if [ ! -e $WORKSPACE_DIR/$MANIFEST.yml ]; then
+        echo "Unable to read deployed manifest at '$WORKSPACE_DIR/$MANIFEST.yml'."
+        exit 1
+    fi
+
+    local name=$(cat $WORKSPACE_DIR/$MANIFEST.yml | awk '/^name:/ { print $2 }')
+
+    bosh deployments | grep "| $name " 2>&1 > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "No deployment with '$name' was found."
+        exit 1
+    fi
+
+    nohup bosh -n delete deployment $name --force > $WORKSPACE_DIR/${MANIFEST}_delete.log 2>&1 &
+
+    local task=""
+    while [ -z "$task" ]; do
+        task=$(cat $WORKSPACE_DIR/${MANIFEST}_delete.log | awk '/Director task/ { print $3 }')
+        sleep 1
+    done
+    nohup bosh task $task --debug > $WORKSPACE_DIR/${MANIFEST}_delete_task_$task.log 2>&1 &
+
+    echo "Bosh deletion of deployment '$name' running in the background."
+    echo "- Output available at $WORKSPACE_DIR/${MANIFEST}_delete.log"
+    echo "- Debug logs at $WORKSPACE_DIR/${MANIFEST}_delete_task_$task.log"
 }
 
 export ROOT_DIR=$(cd $(dirname $0) && pwd)
@@ -206,10 +236,15 @@ case "$1" in
         initialize $2 $3 bosh-init
         bosh_init_deploy
         ;;
-    release)
+    deploy)
         initialize $2 $3 $4
         set_bosh_target
         bosh_deploy_release
+        ;;
+    delete)
+        initialize $2 $3 $4
+        set_bosh_target
+        bosh_deploy_delete
         ;;
     *)
         usage
