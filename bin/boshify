@@ -122,6 +122,9 @@ function initialize() {
 
     source $BOSHRC_ENV
     export ENV_NAME=$env
+}
+
+function download_stemcell() {
 
     STEMCELL_DIR=$ROOT_DIR/.stemcells
     mkdir -p $STEMCELL_DIR
@@ -234,10 +237,12 @@ case "$1" in
         ;;
     init)
         initialize $2 $3 bosh-init
+        download_stemcell
         bosh_init_deploy
         ;;
     deploy)
         initialize $2 $3 $4
+        download_stemcell
         set_bosh_target
         bosh_deploy_release
         ;;
