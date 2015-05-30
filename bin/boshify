@@ -10,8 +10,8 @@ cat << EOF
 
         ACTION:
           help - Show this message.
-          deploy - Deploy Bosh.
-          release - Deploy Release.
+          init - Deploy Bosh.
+          deploy - Deploy Release.
           delete - Delete a bosh deployment.
 
         iaas - Folder container templates for the target IaaS
