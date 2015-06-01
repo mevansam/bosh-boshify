@@ -88,13 +88,13 @@
   networks = { }
 
   networks[app_net_name] = app_network = Network.new(app_net_name, "#{workspace_dir}/state-app_network.yml")
-  app_net_static_block = app_network.allocate_block(10)
-  app_net_dynamic_block = app_network.allocate_block(90)
+  app_net_static_block = app_network.allocate_block(30)
+  app_net_dynamic_block = app_network.allocate_block(70)
 
   if services_net_name!=app_net_name
     networks[services_net_name] = services_network = Network.new(services_net_name, "#{workspace_dir}/state-services_network.yml")
-    services_net_static_block = services_network.allocate_block(10)
-    services_net_dynamic_block = services_network.allocate_block(90)
+    services_net_static_block = services_network.allocate_block(30)
+    services_net_dynamic_block = services_network.allocate_block(70)
   else
     networks[services_net_name] = services_network = app_network
     services_net_static_block = app_net_static_block
@@ -102,8 +102,8 @@
   end
   if infra_net_name!=services_net_name
     networks[infra_net_name] = infra_network = Network.new(infra_net_name, "#{workspace_dir}/state-infra_network.yml")
-    infra_net_static_block = infra_network.allocate_block(10)
-    infra_net_dynamic_block = infra_network.allocate_block(90)
+    infra_net_static_block = infra_network.allocate_block(30)
+    infra_net_dynamic_block = infra_network.allocate_block(70)
   else
     networks[infra_net_name] = infra_network = services_network
     infra_net_static_block = services_net_static_block

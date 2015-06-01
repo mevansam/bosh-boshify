@@ -176,7 +176,8 @@ function set_bosh_target() {
     local director_vmuuid=$(cat $WORKSPACE_DIR/bosh-init-state.json | awk '/current_vm_cid/ { print substr($2,2,length($2)-3) }')
     local director_ip=$(nova --insecure show  $director_vmuuid 2> /dev/null | awk -v net="$INFRA_NETWORK" '$2==net && $3=="network" { print $6 }')
 
-    bosh -u $BOSH_USER -p $BOSH_PASSWORD target $director_ip
+    bosh target $director_ip
+    bosh login $BOSH_USER $BOSH_PASSWORD
     export DIRECTOR_UID=$(bosh status | awk '/UUID/ { print $2 }')
 }
 
