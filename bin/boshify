@@ -78,6 +78,10 @@ function initialize() {
             exit 1
         fi
     fi
+    if [ ! -d "$HOME_DIR/environments" ]; then
+       echo "ERROR! Environment directory $HOME_DIR/environments does not exist."
+       exit 1
+    fi
     if [ -z $env ] || [ ! -d "$HOME_DIR/environments/$env" ]; then
         echo "ERROR! Env must be one of:"
         for d in $(ls $HOME_DIR/environments); do echo "  - $d"; done
@@ -143,7 +147,7 @@ function download_stemcell() {
         curl -k -J -L https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw?v=2968 -o $STEMCELL_PATH
     fi
     if [ ! -e "$STEMCELL_DIR/$STEMCELL_NAME.sha1" ]; then
-        openssl sha1 .stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw.tgz > $STEMCELL_DIR/$STEMCELL_NAME.sha1
+        openssl sha1 $STEMCELL_PATH > $STEMCELL_DIR/$STEMCELL_NAME.sha1
     fi
     
     SHA1=$(cat $STEMCELL_DIR/$STEMCELL_NAME.sha1)

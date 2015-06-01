@@ -150,6 +150,7 @@
 
   vips += `nova --insecure floating-ip-list 2> /dev/null`.lines.select { |l| l[/\| -\s+\| -\s+\| #{public_net_name}/, 0] }.each.map { |l| l[/\d+\.\d+\.\d+\.\d+/, 0] }
   raise "Error reading available public IPs." unless $?.success?
+  vips.uniq!
   vips.sort!
 
   haproxy_ips = [ ]
